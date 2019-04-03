@@ -18,7 +18,7 @@ To create a fast, frictionless, natural interface programming language for data 
 - Modules
 	- `function`: defines a function
 	- `return`: returns whatever follows to the main execution thread
-	- `::`: specifies return type for funcction
+	- `::`: specifies return type for function
 	- `>>`: Pipe operator to pipe results of functions as input to other functions
 - Conditionals
 	- `if`
@@ -65,13 +65,15 @@ To create a fast, frictionless, natural interface programming language for data 
 - Identifiers
 	- `[A-Za-z][A-za-z0-9]*`
 - String constant
-	- `'[A-Za-z0-9]+'`
+	- `'.*'`
+	- `".*"`
 - Int constant
 	- `[0-9]+`
 - Float constant
 	- `[0-9]+.[0-9]+`
 - Comment
-	- `[A-Za-z0-9]*`
+	- `// .*`
+	- `/* .* */`
 
 
 
