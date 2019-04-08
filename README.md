@@ -108,7 +108,7 @@ A particular feature of the language is that it allows for piping data frames. T
 | `colnames(data.frame) :: string[]` | Returns the colum names of the data frame |
 | `dim(data.frame) :: int[2]` | Returns the dimensions (rows and columns) of a data frame |
 | `summary(data.frame) :: void` | Returns a basic statistical summary for numerical columns in the data frame. |
-| `sum(int[] || float[] || bool[]) :: int || float ` | Returns the sum of a numeric (or parseable) vector |
+| `sum(int [] \| float[] \| bool[]) :: int \| float` | Returns the sum of a numeric (or parseable) vector |
 | `map(vector, function) :: <type of vector>` | Applies a function succesively to all elements of a vector and returns the transformed vector |
 | `len(vector) :: int` | Returns the length of a vector |
 | `ls(void) :: string[]` | Returns the variable names in the current scope |
@@ -117,7 +117,7 @@ A particular feature of the language is that it allows for piping data frames. T
 | `lin.reg(numeric[m], numeric[m]) :: float[2]` | Returns the linear regression coefficients for a given data set (x and y values) |
 | `hist(x : vector, y : vector) :: void` | Prints a histogram to default GUI driver for x and y axis vectors. |
 | `select(x: data.frame, names: string[])` | Do a projection of the column names in `names` on `x` |
-| `filter(x: data.frame, condition : bool[] | bool)` | Return the rows in `x` where `condition` is `true` (or subset by the `true` values in the condition if it returns a vector of booleans) |
+| `filter(x: data.frame, condition : bool[] \| bool)` | Return the rows in `x` where `condition` is `true` (or subset by the `true` values in the condition if it returns a vector of booleans) |
 
 
 ### 4.5 Data types
