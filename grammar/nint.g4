@@ -33,12 +33,10 @@ WHILE:              'while';
 BOOL_LITERAL: 'true' | 'false';
 FLOAT_LITERAL: ([0-9]*'.')?[0-9]+;
 ID: [a-zA-Z][a-zA-Z0-9_]*;
-INT_LITERAL: [0-9]+;
-RANGE: [0-9]+'..'[0-9]+
-STRING_LITERAL
-    :   '"' (~[\\"])*? '"'
-    |   '\'' (~[\\'])*? '\''
-    ;
+DIGIT: [0-9];
+INT_LITERAL: DIGIT+;
+RANGE: DIGIT+'..'DIGIT+;
+STRING_LITERAL:  '"' (~["\\\r\n])* '"' |  '\'' (~["\\\r\n])* '\'';
 
 // Separators
 COMMA:              ',';
@@ -71,7 +69,7 @@ PIPE:               '>>';
 SUB:                '-';
 
 // Whitespace and comments
-COMMENT:            '/*'.*'*/'       -> skip;
+COMMENT:            '/*'.*?'*/'       -> skip;
 LINE_COMMENT:       '//' ~[\r\n]*    -> skip;
 WS:                 [ \t\r\n\u000C]+ -> skip;
 
@@ -107,7 +105,7 @@ block
 statement
     : block
     | IF '(' expression ')' block (ELSE block)?
-    | FOR '(' forControl ')' block
+    | FOR '(' forInit? ';' expression? ';' expressionList? ')' block
     | WHILE '(' expression ')' block
     | RETURN expression? ';'
     | expression ';'
@@ -116,7 +114,7 @@ statement
     ;
 
 
-expression:
+expression
     : primary
     | expression '[' (expression | indexList | ':') ']' // `:` = all the dimension
     | functionCall
@@ -133,6 +131,10 @@ expression:
     | <assoc=right> expression '=' expression // assignment
     ;
 
+expressionList
+    : expression (',' expression)*
+    ;
+
 
 literal
     : INT_LITERAL
@@ -141,6 +143,14 @@ literal
     | BOOL_LITERAL
     | RANGE
     | NULL
+    ;
+
+
+/* For loops */
+
+forInit
+    : declaration
+    | expressionList
     ;
 
 indexList
