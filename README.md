@@ -94,7 +94,7 @@ A particular feature of the language is that it allows for piping data frames. T
 
 ```R
 > x = read.table('some_file.csv', ',', false);
-> result = x >> select(somenames) >> filter(x['somename'] == 3)
+> result = x >> select(somenames) >> filter(x['somename'] == 3);
 ```
 
 ### 4.4 Special functions
