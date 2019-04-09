@@ -143,6 +143,7 @@ literal
     | BOOL_LITERAL
     | RANGE
     | NULL
+    | ID
     ;
 
 

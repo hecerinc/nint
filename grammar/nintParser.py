@@ -35,7 +35,7 @@ def serializedATN():
         buf.write("\24\u00ff\13\24\3\25\3\25\3\25\6\25\u0104\n\25\r\25\16")
         buf.write("\25\u0105\3\25\2\4\n \26\2\4\6\b\n\f\16\20\22\24\26\30")
         buf.write("\32\34\36 \"$&(\2\t\4\2$$88\4\2))\60\60\4\2%%\64\64\3")
-        buf.write("\2,/\4\2**\61\61\5\2\16\16\24\25\30\32\6\2\4\5\7\b\r\r")
+        buf.write("\2,/\4\2**\61\61\5\2\16\16\24\26\30\32\6\2\4\5\7\b\r\r")
         buf.write("\21\22\2\u0121\2\64\3\2\2\2\4?\3\2\2\2\6A\3\2\2\2\bs\3")
         buf.write("\2\2\2\n}\3\2\2\2\f\u00a4\3\2\2\2\16\u00ac\3\2\2\2\20")
         buf.write("\u00b0\3\2\2\2\22\u00b3\3\2\2\2\24\u00bb\3\2\2\2\26\u00bf")
@@ -391,8 +391,8 @@ class nintParser ( Parser ):
         try:
             self.state = 61
             self._errHandler.sync(self)
-            token = self._input.LA(1)
-            if token in [nintParser.LPAREN]:
+            la_ = self._interp.adaptivePredict(self._input,3,self._ctx)
+            if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 55
                 self.match(nintParser.LPAREN)
@@ -401,18 +401,19 @@ class nintParser ( Parser ):
                 self.state = 57
                 self.match(nintParser.RPAREN)
                 pass
-            elif token in [nintParser.NULL, nintParser.BOOL_LITERAL, nintParser.FLOAT_LITERAL, nintParser.INT_LITERAL, nintParser.RANGE, nintParser.STRING_LITERAL]:
+
+            elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 59
                 self.literal()
                 pass
-            elif token in [nintParser.ID]:
+
+            elif la_ == 3:
                 self.enterOuterAlt(localctx, 3)
                 self.state = 60
                 self.match(nintParser.ID)
                 pass
-            else:
-                raise NoViableAltException(self)
+
 
         except RecognitionException as re:
             localctx.exception = re
@@ -1102,6 +1103,9 @@ class nintParser ( Parser ):
         def NULL(self):
             return self.getToken(nintParser.NULL, 0)
 
+        def ID(self):
+            return self.getToken(nintParser.ID, 0)
+
         def getRuleIndex(self):
             return nintParser.RULE_literal
 
@@ -1125,7 +1129,7 @@ class nintParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 170
             _la = self._input.LA(1)
-            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << nintParser.NULL) | (1 << nintParser.BOOL_LITERAL) | (1 << nintParser.FLOAT_LITERAL) | (1 << nintParser.INT_LITERAL) | (1 << nintParser.RANGE) | (1 << nintParser.STRING_LITERAL))) != 0)):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << nintParser.NULL) | (1 << nintParser.BOOL_LITERAL) | (1 << nintParser.FLOAT_LITERAL) | (1 << nintParser.ID) | (1 << nintParser.INT_LITERAL) | (1 << nintParser.RANGE) | (1 << nintParser.STRING_LITERAL))) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
