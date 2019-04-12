@@ -1,9 +1,11 @@
 # Arith.py
 
+from .Op import Op
+
 class Arith(Op):
 	"""docstring for Arith"""
-	def __init__(self, token, x1: Expr, x2: Expr):
-		super(Arith, self).__init__(token, None)
+	def __init__(self, token, x1: 'Expr', x2: 'Expr'):
+		super().__init__(token, None)
 		self._expr1 = x1
 		self._expr2 = x2
 		# TODO: Change this to a setter
@@ -13,17 +15,17 @@ class Arith(Op):
 		# 	raise Exception("Type mismatch on line {}".format(self.line))
 
 	@property
-	def expr1(self) -> Expr:
+	def expr1(self) -> 'Expr':
 		return self._expr1
 
 	@property
-	def exp2(self) -> Expr:
-		return self._exp2
+	def expr2(self) -> 'Expr':
+		return self._expr2
 
 	# @override
-	def gen(self) -> Expr:
+	def gen(self) -> 'Expr':
 		return Arith(self.token, self.expr1.reduce(), self.expr2.reduce())
 
 	def toString(self) -> str:
-		return "{} {} {}".format(expr1.toString(), op.toString(), expr2.toString())
+		return "{} {} {}".format(self.expr1.toString(), self.token, self.expr2.toString())
 

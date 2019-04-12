@@ -5,6 +5,16 @@ if __name__ is not None and "." in __name__:
 else:
     from nintParser import nintParser
 
+import sys
+sys.path.append("C:/dev/compiler")
+from icg.Node import Node
+from icg.Expr import Expr
+from icg.Op import Op
+from icg.Arith import Arith
+from icg.Stmt import Stmt
+from icg.Seq import Seq
+
+
 # This class defines a complete listener for a parse tree produced by nintParser.
 class nintListener(ParseTreeListener):
 

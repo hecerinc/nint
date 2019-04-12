@@ -1,8 +1,12 @@
 # Stmt.py
+from .Node import Node
 
-class Stmt(object):
+class Stmt(Node):
 	"""docstring for Stmt"""
-	def __init__(self, arg):
+	def __init__(self):
 		super(Stmt, self).__init__()
-		self.arg = arg
-		
+
+	# @override
+	def gen(self):
+		pass
+		# self.emit("Statement found!")
