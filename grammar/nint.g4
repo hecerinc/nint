@@ -75,9 +75,9 @@ result = None
     | '!' expression // negation TODO: assoc=right?
     // | a=expression bop=('*'|'/') b=expression
     // | a=expression bop=('+'|'-') b=expression
-    | exp
-    | expression bop=('<=' | '>=' | '>' | '<') expression
+    | expression bop=('<=' | '>=' | '>' | '<') {self.nint.add_operator($bop.text)} expression {self.nint.check_relop()}
     | expression bop=('==' | '!=') expression
+    | exp
     | <assoc=right> expression bop='**' expression // exponentiation
     | expression bop='&&' expression
     | expression bop='||' expression

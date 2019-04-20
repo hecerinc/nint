@@ -1,0 +1,4 @@
+# Operators.py
+
+RELOPS = ['<', '>', '<=', '>=']
+

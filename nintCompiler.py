@@ -1,8 +1,11 @@
 # nintCompiler.py
 
+import os
+
 from utils.Stack import Stack
 from icg.Temp import Temp
-import os
+import symbols.Operators as Operators
+
 
 debug_mode = os.getenv('NINT_ENV', 'debug')
 
@@ -36,6 +39,24 @@ class nintCompiler:
 	def add_operator(self, op):
 		debug("Operator.push({})".format(op))
 		self.OperatorStack.push(op)
+
+	def check_relop(self):
+		top = self.OperatorStack.peek()
+		if top not in Operators.RELOPS:
+			return
+		right_operand = self.OperandStack.pop()
+		right_type = self.TypeStack.pop()
+		left_operand = self.OperandStack.pop()
+		left_type = self.TypeStack.pop()
+		operator = self.OperatorStack.pop()
+		debug(operator, left_type, right_type) # TODO: remove
+		result = Temp.getTmp().toString()
+		debug("Adds quad")
+		self.quads.append((operator, left_operand, right_operand, result))
+		self.OperandStack.push(result)
+		self.TypeStack.push('temporal')
+		debug()
+
 
 	def check_addsub(self):
 		debug('check_addsub')

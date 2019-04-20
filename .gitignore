@@ -1,6 +1,11 @@
 .antlr/
 temp/
 
+grammar/nintParser.py
+grammar/nintLexer.py
+grammar/*.interp
+grammar/*.tokens
+
 # Created by https://www.gitignore.io/api/python,windows
 # Edit at https://www.gitignore.io/?templates=python,windows
 
