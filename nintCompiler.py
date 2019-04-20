@@ -9,6 +9,7 @@ import symbols.Types as Types
 
 GOTO = 'goto'
 GOTOF = 'gotoF'
+GOTOV = 'gotoV'
 
 debug_mode = os.getenv('NINT_ENV', 'debug')
 
@@ -133,8 +134,37 @@ class nintCompiler:
 
 		# Fill the false condition jump of the `if`
 		if_false_jump = self.JumpStack.pop()
-		counter = len(self.quads)
+		counter = len(self.quads) # TODO: counter
 		self.JumpStack.push(counter-1)
 		self.fill(if_false_jump, counter)
 
+	# While
+	# --------------------------------------------
+	def while_condition_start(self):
+		debug("while_condition_start")
+		counter = len(self.quads) # TODO: counter
+		self.JumpStack.push(counter)
 
+	def while_block_start(self):
+		debug("while_block_start")
+		expression_type = self.TypeStack.pop()
+		if expression_type != Types.BOOL:
+			raise Exception("Type mismatch on line {}".format("SOMELINE FIX THIS TODO"))
+		result = self.OperandStack.pop()
+		debug("ADD QUAD: while block_start GOTOF")
+		self.quads.append([GOTOF, result, None, None])
+		counter = len(self.quads)
+		self.JumpStack.push(counter - 1) # TODO: counter
+
+	def while_end(self):
+		debug("while_end")
+
+		pending_while_end_jump = self.JumpStack.pop()
+		return_pos = self.JumpStack.pop()
+
+		debug("ADD QUAD: while_end GOTO return")
+		self.quads.append([GOTO, None, None, return_pos])
+
+		counter = len(self.quads) # TODO: change this
+		self.fill(pending_while_end_jump, counter)
+		

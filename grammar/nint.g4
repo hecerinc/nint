@@ -55,7 +55,7 @@ stmt = None
     : block
     | IF '(' expression ')' {self.nint.ifelse_start_jump()} block (ELSE {self.nint.ifelse_start_else()} block)? {self.nint.ifelse_end_jump()}
     | FOR '(' forInit? ';' expression? ';' expressionList? ')' block
-    | WHILE '(' expression ')' block
+    | WHILE {self.nint.while_condition_start()} '(' expression ')' {self.nint.while_block_start()} block {self.nint.while_end()}
     | RETURN expression? ';'
     | expression ';'
     | functionDeclaration
