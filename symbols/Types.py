@@ -1,0 +1,5 @@
+# Types.py
+
+BOOL = 'bool'
+
+

@@ -53,7 +53,7 @@ statement returns [stmt]
 stmt = None
 }
     : block
-    | IF '(' expression ')' block (ELSE block)?
+    | IF '(' expression ')' {self.nint.ifelse_start_jump()} block (ELSE {self.nint.ifelse_start_else()} block)? {self.nint.ifelse_end_jump()}
     | FOR '(' forInit? ';' expression? ';' expressionList? ')' block
     | WHILE '(' expression ')' block
     | RETURN expression? ';'
