@@ -8,73 +8,12 @@
 
 grammar nint;
 
-/* 1. Tokens
----------------------------------------------------------- */
+@parser::header {
+import sys
+sys.path.append("C:/dev/compiler")
+from nintCompiler import nintCompiler
+}
 
-// Keywords
-BOOL:               'bool';
-DF:                 'data.frame';
-ELSE:               'else';
-FACTOR:             'factor';
-FLOAT:              'float';
-FOR:                'for';
-FUN:                'function';
-IF:                 'if';
-INPUT:              'input';
-INT:                'int';
-NULL:               'null';
-PRINT:              'print';
-RETURN:             'return';
-STRING:             'string';
-VOID:               'void';
-WHILE:              'while';
-
-// Literals
-BOOL_LITERAL: 'true' | 'false';
-FLOAT_LITERAL: ([0-9]*'.')?[0-9]+;
-ID: [a-zA-Z][a-zA-Z0-9_]*;
-DIGIT: [0-9];
-INT_LITERAL: DIGIT+;
-RANGE: DIGIT+'..'DIGIT+;
-STRING_LITERAL:  '"' (~["\\\r\n])* '"' |  '\'' (~["\\\r\n])* '\'';
-
-// Separators
-COMMA:              ',';
-DOT:                '.';
-LBRACE:             '{';
-LBRACK:             '[';
-LPAREN:             '(';
-RBRACE:             '}';
-RBRACK:             ']';
-RETURNSTYPE:        '::';
-RPAREN:             ')';
-SEMICOLON:          ';';
-
-// Operators
-ADD:                '+';
-AND:                '&&';
-ASSIGN:             '=';
-BANG:               '!';
-DIV:                '/';
-EQUAL:              '==';
-EXP:                '**';
-GT:                 '>';
-GTE:                '>=';
-LE:                 '<=';
-LTE:                '<';
-MUL:                '*';
-NOTEQUAL:           '!=';
-OR:                 '||';
-PIPE:               '>>';
-SUB:                '-';
-
-// Whitespace and comments
-COMMENT:            '/*'.*?'*/'       -> skip;
-LINE_COMMENT:       '//' ~[\r\n]*    -> skip;
-WS:                 [ \t\r\n\u000C]+ -> skip;
-
-// Match both UNIX and Windows newlines
-NL:                 '\r'? '\n' ;
 
 
 /* 2. Rules
@@ -83,7 +22,14 @@ NL:                 '\r'? '\n' ;
 
 
 
-prog:   (   statement (';'|NL)*
+prog returns [s]
+@init {
+self.nint = nintCompiler()
+}
+@after {
+$ctx.s = self.nint
+}
+    :   (   stats+=statement (';'|NL)*
     |   NL
         )*
     EOF
@@ -102,7 +48,10 @@ block
     ;
 
 
-statement
+statement returns [stmt]
+@init {
+stmt = None
+}
     : block
     | IF '(' expression ')' block (ELSE block)?
     | FOR '(' forInit? ';' expression? ';' expressionList? ')' block
@@ -114,15 +63,19 @@ statement
     ;
 
 
-expression
+expression returns [result]
+@init{
+result = None
+}
     : primary
     | expression '[' (expression | indexList | ':') ']' // `:` = all the dimension
     | functionCall
     | pipeStmt
     | '-' expression // negative numbers
     | '!' expression // negation TODO: assoc=right?
-    | expression bop=('*'|'/') expression
-    | expression bop=('+'|'-') expression
+    // | a=expression bop=('*'|'/') b=expression
+    // | a=expression bop=('+'|'-') b=expression
+    | exp
     | expression bop=('<=' | '>=' | '>' | '<') expression
     | expression bop=('==' | '!=') expression
     | <assoc=right> expression bop='**' expression // exponentiation
@@ -131,16 +84,24 @@ expression
     | <assoc=right> expression '=' expression // assignment
     ;
 
+exp
+    : term {self.nint.check_addsub()} (bop=('+'|'-') {self.nint.add_operator($bop.text)} term {self.nint.check_addsub()})*
+    ;
+term
+    : p1=primary {self.nint.check_multdiv()} (bop=('*'|'/') {self.nint.add_operator($bop.text)} p2=primary {self.nint.check_multdiv()})*
+    ;
+
+
 expressionList
     : expression (',' expression)*
     ;
 
 
 literal
-    : INT_LITERAL
-    | FLOAT_LITERAL
-    | STRING_LITERAL
-    | BOOL_LITERAL
+    : INT_LITERAL {self.nint.add_constant($INT_LITERAL.text, 'int')}
+    | FLOAT_LITERAL {self.nint.add_constant($FLOAT_LITERAL.text, 'float')}
+    | STRING_LITERAL {self.nint.add_constant($STRING_LITERAL.text, 'string')}
+    | BOOL_LITERAL {self.nint.add_constant($BOOL_LITERAL.text, 'bool')}
     | RANGE
     | NULL
     | ID
@@ -228,3 +189,70 @@ pipeStmt
 /* Special functions */
 
 
+/* 1. Tokens
+---------------------------------------------------------- */
+
+// Keywords
+BOOL:               'bool';
+DF:                 'data.frame';
+ELSE:               'else';
+FACTOR:             'factor';
+FLOAT:              'float';
+FOR:                'for';
+FUN:                'function';
+IF:                 'if';
+INPUT:              'input';
+INT:                'int';
+NULL:               'null';
+PRINT:              'print';
+RETURN:             'return';
+STRING:             'string';
+VOID:               'void';
+WHILE:              'while';
+
+// Literals
+BOOL_LITERAL: 'true' | 'false';
+FLOAT_LITERAL: ([0-9]*'.')?[0-9]+;
+ID: [a-zA-Z][a-zA-Z0-9_]*;
+DIGIT: [0-9];
+INT_LITERAL: DIGIT+;
+RANGE: DIGIT+'..'DIGIT+;
+STRING_LITERAL:  '"' (~["\\\r\n])* '"' |  '\'' (~["\\\r\n])* '\'';
+
+// Separators
+COMMA:              ',';
+DOT:                '.';
+LBRACE:             '{';
+LBRACK:             '[';
+LPAREN:             '(';
+RBRACE:             '}';
+RBRACK:             ']';
+RETURNSTYPE:        '::';
+RPAREN:             ')';
+SEMICOLON:          ';';
+
+// Operators
+ADD:                '+';
+AND:                '&&';
+ASSIGN:             '=';
+BANG:               '!';
+DIV:                '/';
+EQUAL:              '==';
+EXP:                '**';
+GT:                 '>';
+GTE:                '>=';
+LE:                 '<=';
+LTE:                '<';
+MUL:                '*';
+NOTEQUAL:           '!=';
+OR:                 '||';
+PIPE:               '>>';
+SUB:                '-';
+
+// Whitespace and comments
+COMMENT:            '/*'.*?'*/'       -> skip;
+LINE_COMMENT:       '//' ~[\r\n]*    -> skip;
+WS:                 [ \t\r\n\u000C]+ -> skip;
+
+// Match both UNIX and Windows newlines
+NL:                 '\r'? '\n' ;

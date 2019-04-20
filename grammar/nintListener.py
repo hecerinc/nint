@@ -5,6 +5,11 @@ if __name__ is not None and "." in __name__:
 else:
     from nintParser import nintParser
 
+import sys
+sys.path.append("C:/dev/compiler")
+from nintCompiler import nintCompiler
+
+
 # This class defines a complete listener for a parse tree produced by nintParser.
 class nintListener(ParseTreeListener):
 
@@ -50,6 +55,24 @@ class nintListener(ParseTreeListener):
 
     # Exit a parse tree produced by nintParser#expression.
     def exitExpression(self, ctx:nintParser.ExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by nintParser#exp.
+    def enterExp(self, ctx:nintParser.ExpContext):
+        pass
+
+    # Exit a parse tree produced by nintParser#exp.
+    def exitExp(self, ctx:nintParser.ExpContext):
+        pass
+
+
+    # Enter a parse tree produced by nintParser#term.
+    def enterTerm(self, ctx:nintParser.TermContext):
+        pass
+
+    # Exit a parse tree produced by nintParser#term.
+    def exitTerm(self, ctx:nintParser.TermContext):
         pass
 
 
