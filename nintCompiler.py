@@ -7,6 +7,7 @@ from icg.Temp import Temp
 import symbols.Operators as Operators
 import symbols.Types as Types
 
+# TODO: probs should remove this from here
 GOTO = 'goto'
 GOTOF = 'gotoF'
 GOTOV = 'gotoV'
@@ -21,9 +22,7 @@ def debug(*args):
 			print()
 
 def printable(item):
-	if item is None:
-		return ' '
-	return str(item)
+	return ' ' if item is None else str(item)
 
 class nintCompiler:
 	"""docstring for nintCompiler"""
@@ -39,6 +38,12 @@ class nintCompiler:
 		for i, quad in enumerate(self.quads):
 			print("{})".format(i), '\t'.join(map(printable, quad)))
 
+	def add_var(self, token):
+		debug("add_var")
+		self.OperandStack.push(token)
+		self.TypeStack.push('var') # TODO: get actual dtype
+		debug()
+
 	def add_constant(self, token, dtype):
 		debug("Operand.push({})".format(token))
 		debug("TypeStack.push({})".format(dtype))
@@ -50,6 +55,7 @@ class nintCompiler:
 		debug("Operator.push({})".format(op))
 		self.OperatorStack.push(op)
 
+	# TODO: refactor the check_* functions
 	def check_relop(self):
 		debug("check_relop")
 		top = self.OperatorStack.peek()
@@ -138,6 +144,28 @@ class nintCompiler:
 		self.JumpStack.push(counter-1)
 		self.fill(if_false_jump, counter)
 
+
+	def assignment_quad(self):
+		debug("assignment_quad")
+		operator = self.OperatorStack.pop()
+		if operator != '=':
+			raise Exception("Something went wrong") # TODO: Change this
+
+		right_operand = self.OperandStack.pop()
+		right_type = self.TypeStack.pop()
+		left_operand = self.OperandStack.pop()
+		left_type = self.TypeStack.pop()
+
+		print("<{}> = <{}>".format(left_type, right_type))
+		# assert right_type == left_type, "Type mismatch: assignment does not match" # TODO: probably change this
+
+		self.quads.append((operator, right_operand, None, left_operand))
+
+		debug()
+
+
+
+
 	# While
 	# --------------------------------------------
 	def while_condition_start(self):
@@ -167,4 +195,4 @@ class nintCompiler:
 
 		counter = len(self.quads) # TODO: change this
 		self.fill(pending_while_end_jump, counter)
-		
+

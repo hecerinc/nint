@@ -39,7 +39,6 @@ $ctx.s = self.nint
 primary
     : '(' expression ')'
     | literal
-    | ID
     ;
 
 
@@ -75,13 +74,13 @@ result = None
     | '!' expression // negation TODO: assoc=right?
     // | a=expression bop=('*'|'/') b=expression
     // | a=expression bop=('+'|'-') b=expression
+    | <assoc=right> expression '=' {self.nint.add_operator('=')} expression {self.nint.assignment_quad()} // assignment
     | expression bop=('<=' | '>=' | '>' | '<') {self.nint.add_operator($bop.text)} expression {self.nint.check_relop()}
     | expression bop=('==' | '!=') expression
     | exp
     | <assoc=right> expression bop='**' expression // exponentiation
     | expression bop='&&' expression
     | expression bop='||' expression
-    | <assoc=right> expression '=' expression // assignment
     ;
 
 exp
@@ -104,7 +103,7 @@ literal
     | BOOL_LITERAL {self.nint.add_constant($BOOL_LITERAL.text, 'bool')}
     | RANGE
     | NULL
-    | ID
+    | ID {self.nint.add_var($ID.text)}
     ;
 
 
