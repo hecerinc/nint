@@ -1,4 +1,5 @@
 .antlr/
+todo.md
 temp/
 
 grammar/nintParser.py
