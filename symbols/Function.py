@@ -1,16 +1,19 @@
 # Function.py
 
 from .Symbol import Symbol
+from .Variable import Variable
 from .Env import Env
 
 
 class Function(Symbol):
 	"""docstring for Function"""
-	def __init__(self, name, dtype, varsTable: Env):
+	def __init__(self, name, scope: Env = None, dtype = None):
 		super().__init__(name, dtype)
-		self._varsTable = varsTable
-		# TODO: initialize everything
-
+		self._varsTable = Env(scope)
+		self._size = None
+		self._temp_counter = 0
+		self._start_pos = 0
+		self._param_list = []
 
 	@property
 	def varsTable(self) -> Env:
@@ -30,6 +33,10 @@ class Function(Symbol):
 		# TODO: do we need the names? we can use tuples
 		return self._param_list
 
+	@start_pos.setter
+	def start_pos(self, pos):
+		self._start_pos = pos
+
 
 	def update_type(self, dtype):
 		'''Update the type of the function'''
@@ -41,6 +48,9 @@ class Function(Symbol):
 		#   1. Adding it to the varTable
 		#   2. Adding its type to the params list
 		#   3. Adjust the function size
-		raise Exception('Not implemented')
+		self._varsTable.insert(variable)
+		self._param_list.append(variable.dtype)
+		self._temp_counter += 1
+
 
 

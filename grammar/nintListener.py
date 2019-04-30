@@ -158,15 +158,6 @@ class nintListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by nintParser#typeSpecifier.
-    def enterTypeSpecifier(self, ctx:nintParser.TypeSpecifierContext):
-        pass
-
-    # Exit a parse tree produced by nintParser#typeSpecifier.
-    def exitTypeSpecifier(self, ctx:nintParser.TypeSpecifierContext):
-        pass
-
-
     # Enter a parse tree produced by nintParser#parameterList.
     def enterParameterList(self, ctx:nintParser.ParameterListContext):
         pass
@@ -182,6 +173,15 @@ class nintListener(ParseTreeListener):
 
     # Exit a parse tree produced by nintParser#parameterDeclaration.
     def exitParameterDeclaration(self, ctx:nintParser.ParameterDeclarationContext):
+        pass
+
+
+    # Enter a parse tree produced by nintParser#typeSpecifier.
+    def enterTypeSpecifier(self, ctx:nintParser.TypeSpecifierContext):
+        pass
+
+    # Exit a parse tree produced by nintParser#typeSpecifier.
+    def exitTypeSpecifier(self, ctx:nintParser.TypeSpecifierContext):
         pass
 
 

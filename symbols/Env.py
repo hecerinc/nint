@@ -34,3 +34,9 @@ class Env:
 		assert(sym.name not in self._table) # TODO: remove?
 		self._table.update({sym.name: sym})
 
+	def print(self):
+		print()
+		print('VARS TABLE')
+		for item in self._table.items():
+			print(item[0], item[1].dtype)
+		print()

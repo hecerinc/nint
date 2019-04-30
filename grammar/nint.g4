@@ -138,7 +138,24 @@ vectorInitializer
 /* Functions */
 
 functionDeclaration
-    : 'function' ID '(' parameterList ')' '::' typeSpecifier block
+    : 'function' ID {self.nint.procedure_start($ID.text)} '(' (plist=parameterList {self.nint.procedure_add_params($ID.text, $plist.ctx.plist)})? ')' '::' typeSpecifier {self.nint.procedure_set_type($typeSpecifier.text); self.nint.procedure_mark_start()} block {self.nint.procedure_end()}
+    ;
+
+
+parameterList returns [plist]
+@init {
+plist = None
+}
+    : pd=parameterDeclaration {$ctx.plist = [$pd.ctx.pd]}
+    | paramlist=parameterList ',' pd=parameterDeclaration {$ctx.plist = $paramlist.ctx.plist + [$pd.ctx.pd]}
+    ;
+
+
+parameterDeclaration returns [pd]
+@init {
+pd = dict()
+}
+    : ts=typeSpecifier ID {$ctx.pd = {'type': $ts.text, 'id': $ID.text}}
     ;
 
 /* TODO: how to handle null? */
@@ -150,17 +167,6 @@ typeSpecifier
     |   'data.frame'
     |   'factor'
     |   'bool') ('[' ']')? /* TODO: vectors of data frames? */
-    ;
-
-
-parameterList
-    : parameterDeclaration
-    | parameterList ',' parameterDeclaration
-    ;
-
-
-parameterDeclaration
-    : typeSpecifier ID
     ;
 
 

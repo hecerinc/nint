@@ -8,13 +8,16 @@ from symbols.Operators import RELOPS
 from symbols.Operators import Operator
 from symbols.Types import DType
 from semantics.Cube import SemanticCube
-from icg.Env import Env # Symbol Table
+from symbols.Env import Env # Symbol Table
+from symbols.Function import Function
+from symbols.Variable import Variable
 
 # TODO: probs should remove this from here
 GOTO = 'goto'
 GOTOF = 'gotoF'
 GOTOV = 'gotoV'
 ENDPROC = 'ENDPROC'
+GLOBAL = '__global'
 
 debug_mode = os.getenv('NINT_ENV', 'debug')
 
@@ -36,7 +39,14 @@ class nintCompiler:
 		self.OperandStack = Stack()
 		self.TypeStack = Stack()
 		self.JumpStack = Stack()
-		self.FunDir = Env()
+		self.GScope = Env() # Global env?
+		self._current_func = None
+		# Generate the global scope and insert it into the functions directory
+		# gscope = Function(GLOBAL, None, VOID)
+		# self.FunDir.insert(gscope) # TODO: are objects passed by reference here?
+		self.ScopeStack = Stack() # Keep track of the current Scope
+		self.ScopeStack.push(self.GScope)
+
 		self.quads = []
 
 	def intercode(self):
@@ -223,23 +233,62 @@ class nintCompiler:
 
 	# Function definitions
 	# --------------------------------------------
-	def procedure_begin(self):
+	def procedure_start(self, name: str):
 		'''Insert procedure name into dirfunc table, verify semantics'''
-		pass
-	def procedure_add_param(self):
+		debug('procedure_start')
+		current_scope = self.ScopeStack.peek()
+		# Check that it's not already defined in the **current** scope
+		if current_scope.exists(name):
+			raise Exception('The name {} is already defined'.format(name))
+		func = Function(name, current_scope)
+		# current_scope.insert(func)
+		self._current_func = func
+		self.ScopeStack.push(func.varsTable)
+
+	def procedure_add_params(self, function_name, params):
+		'''Add the total params to the current function'''
+		debug('procedure_add_params')
+		for param in params:
+			self.procedure_add_param(function_name, param['type'], param['id'])
+
+	def procedure_add_param(self, function_name, dtype, pname):
 		'''Call function.add_param()'''
-		pass
+		debug('procedure_add_param')
+		assert(self._current_func is not None)
+		var = Variable(pname, dtype)
+		self._current_func.add_param(var)
+
+
 	def procedure_mark_start(self):
 		'''Mark the current quadruple counter as the start of this function'''
-		pass
+		debug('procedure_mark_start')
+		self._current_func.start_pos = len(self.quads)
+
+	def procedure_set_type(self, dtype):
+		'''Set the return type of this function'''
+		self._current_func.update_type(dtype)
+
 	def procedure_update_size(self):
-		'''Once we know the number of temps, and local variables defined, we can update the size and resolve any ERAs'''
-		pass
+		'''Once we know the number of temps, and local variables defined, we can update the size'''
+		# TODO: define this
+		debug('procedure_update_size')
+
 	def procedure_returns(self):
 		'''Generate a RETURN command'''
+		# TODO: define this
+		debug('procedure_returns')
 		pass
+
 	def procedure_end(self):
 		'''Generate an ENDPROC'''
+		debug('procedure_end')
 		# TODO: release the current vartable?
+		# TODO: resolve new Temp() generator for each procedure
+		# TODO: resolve any ERAs here
+		# self.procedure_update_size()
 		self.quads.append((ENDPROC, None, None, None))
+		debug('FUNCTION TYPE:', self._current_func.dtype)
+		self._current_func.varsTable.print()
+		self._current_func = None
+		self.ScopeStack.pop()
 
