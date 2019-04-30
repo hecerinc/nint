@@ -173,11 +173,11 @@ typeSpecifier
 /* Function calls */
 
 functionCall
-    : ID '(' callArgs? ')'
+    : ID {self.nint.method_call_start($ID.text)} '(' {self.nint.method_call_param_start()} callArgs? ')' {self.nint.method_call_param_end()} {self.nint.method_call_end()}
     ;
 
 callArgs
-    : expression (',' expression)* // TODO: Is this better than separating like parameterList?
+    : expression {self.nint.method_call_param()} (',' {self.nint._param_k += 1} expression {self.nint.method_call_param()})* // TODO: Is this better than separating like parameterList?
     ;
 
 /* Pipe declarations */

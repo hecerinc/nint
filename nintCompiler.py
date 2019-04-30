@@ -17,6 +17,9 @@ GOTO = 'goto'
 GOTOF = 'gotoF'
 GOTOV = 'gotoV'
 ENDPROC = 'ENDPROC'
+PARAM = 'PARAM'
+ERA = 'ERA'
+GOSUB = 'GOSUB'
 GLOBAL = '__global'
 
 debug_mode = os.getenv('NINT_ENV', 'debug')
@@ -41,6 +44,8 @@ class nintCompiler:
 		self.JumpStack = Stack()
 		self.GScope = Env() # Global env?
 		self._current_func = None
+		self._call_proc = None
+		self._param_k = None
 		# Generate the global scope and insert it into the functions directory
 		# gscope = Function(GLOBAL, None, VOID)
 		# self.FunDir.insert(gscope) # TODO: are objects passed by reference here?
@@ -241,7 +246,7 @@ class nintCompiler:
 		if current_scope.exists(name):
 			raise Exception('The name {} is already defined'.format(name))
 		func = Function(name, current_scope)
-		# current_scope.insert(func)
+		current_scope.insert(func)
 		self._current_func = func
 		self.ScopeStack.push(func.varsTable)
 
@@ -254,7 +259,7 @@ class nintCompiler:
 	def procedure_add_param(self, function_name, dtype, pname):
 		'''Call function.add_param()'''
 		debug('procedure_add_param')
-		assert(self._current_func is not None)
+		assert self._current_func is not None
 		var = Variable(pname, dtype)
 		self._current_func.add_param(var)
 
@@ -292,3 +297,58 @@ class nintCompiler:
 		self._current_func = None
 		self.ScopeStack.pop()
 
+	# Function calls
+	# --------------------------------------------
+	def method_call_start(self, method_name):
+		'''Verify that the procedure exists in DirFunc'''
+		# current_scope = self.ScopeStack.peek()
+		# current_scope.
+		debug('method_call_start')
+		if not self.GScope.exists(method_name):
+			raise Exception('Method {} has not been defined'.format(method_name))
+		call_proc = self.GScope.find(method_name)
+		assert call_proc is not None
+		self._call_proc = call_proc
+
+
+	def method_call_param_start(self):
+		'''Start reading parameters for function call'''
+		debug('method_call_param_start')
+		debug("Start param k counter at 0")
+		self._param_k = 0
+		# TODO: add stack/list to keep track of these
+		self.quads.append([ERA, 'SIZE', None, None]) # ActivationRecord expansion
+
+	def method_call_param(self):
+		'''Get the kth parameter for the function call and perform semantic validations'''
+		param = self.OperandStack.pop()
+		param_type = self.TypeStack.pop()
+
+		assert self._param_k is not None
+
+		assert self._param_k < len(self._call_proc.param_list)
+
+		kth_param_type = self._call_proc.param_list[self._param_k]
+
+		# Check param_type
+		assert param_type == kth_param_type # TODO: Aqui es donde entra el cubo semantico
+
+		self.quads.append((PARAM, param, None, 'param{}'.format(self._param_k+1)))
+
+
+	def method_call_param_end(self):
+		'''Verify the last parameter points to null'''
+		# i.e. we consumed all of the parameters
+		# i.e. the parameter call matches the function definition
+		# NOTE: when the argument list ends, the k pointer should be pointing at the last elem (len-1)
+		assert self._param_k == len(self._call_proc.param_list)-1
+
+
+	def method_call_end(self):
+		'''Generate a GOSUB to take control flow the procedure'''
+		func = self._call_proc
+		name = func.name
+		init_address = func.start_pos
+		self._call_proc = None
+		self._param_k = None
+		self.quads.append((GOSUB, name, None, init_address))
