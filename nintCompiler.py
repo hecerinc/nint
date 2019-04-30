@@ -8,11 +8,13 @@ from symbols.Operators import RELOPS
 from symbols.Operators import Operator
 from symbols.Types import DType
 from semantics.Cube import SemanticCube
+from icg.Env import Env # Symbol Table
 
 # TODO: probs should remove this from here
 GOTO = 'goto'
 GOTOF = 'gotoF'
 GOTOV = 'gotoV'
+ENDPROC = 'ENDPROC'
 
 debug_mode = os.getenv('NINT_ENV', 'debug')
 
@@ -34,6 +36,7 @@ class nintCompiler:
 		self.OperandStack = Stack()
 		self.TypeStack = Stack()
 		self.JumpStack = Stack()
+		self.FunDir = Env()
 		self.quads = []
 
 	def intercode(self):
@@ -216,4 +219,27 @@ class nintCompiler:
 
 		counter = len(self.quads) # TODO: change this
 		self.fill(pending_while_end_jump, counter)
+
+
+	# Function definitions
+	# --------------------------------------------
+	def procedure_begin(self):
+		'''Insert procedure name into dirfunc table, verify semantics'''
+		pass
+	def procedure_add_param(self):
+		'''Call function.add_param()'''
+		pass
+	def procedure_mark_start(self):
+		'''Mark the current quadruple counter as the start of this function'''
+		pass
+	def procedure_update_size(self):
+		'''Once we know the number of temps, and local variables defined, we can update the size and resolve any ERAs'''
+		pass
+	def procedure_returns(self):
+		'''Generate a RETURN command'''
+		pass
+	def procedure_end(self):
+		'''Generate an ENDPROC'''
+		# TODO: release the current vartable?
+		self.quads.append((ENDPROC, None, None, None))
 

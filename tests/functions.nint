@@ -1,0 +1,5 @@
+function uno(int a, int b) :: void {
+	a = a + b;
+}
+
+uno(2, 3);
