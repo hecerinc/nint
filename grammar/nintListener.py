@@ -8,6 +8,7 @@ else:
 import sys
 sys.path.append("C:/dev/compiler")
 from nintCompiler import nintCompiler
+from symbols.Types import DType
 
 
 # This class defines a complete listener for a parse tree produced by nintParser.

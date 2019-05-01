@@ -4,8 +4,10 @@ import os
 
 from utils.Stack import Stack
 from icg.Temp import Temp
-import symbols.Operators as Operators
-import symbols.Types as Types
+from symbols.Operators import RELOPS
+from symbols.Operators import Operator
+from symbols.Types import DType
+from semantics.Cube import SemanticCube
 
 # TODO: probs should remove this from here
 GOTO = 'goto'
@@ -35,6 +37,7 @@ class nintCompiler:
 		self.quads = []
 
 	def intercode(self):
+		'''Print the quadruples'''
 		for i, quad in enumerate(self.quads):
 			print("{})".format(i), '\t'.join(map(printable, quad)))
 
@@ -44,7 +47,7 @@ class nintCompiler:
 		self.TypeStack.push('var') # TODO: get actual dtype
 		debug()
 
-	def add_constant(self, token, dtype):
+	def add_constant(self, token, dtype: DType):
 		debug("Operand.push({})".format(token))
 		debug("TypeStack.push({})".format(dtype))
 		debug()
@@ -52,8 +55,11 @@ class nintCompiler:
 		self.TypeStack.push(dtype)
 
 	def add_operator(self, op):
+		''' Adds operator op to the OperatorStack'''
+		debug("add_operator")
 		debug("Operator.push({})".format(op))
-		self.OperatorStack.push(op)
+		operator = Operator(op)
+		self.OperatorStack.push(operator) # TODO: change this to an enum
 
 	# TODO: refactor the check_* functions
 	def check_relop(self):
@@ -69,9 +75,10 @@ class nintCompiler:
 		debug(operator, left_type, right_type) # TODO: remove
 		result = Temp.getTmp().toString()
 		debug("Adds quad")
-		self.quads.append((operator, left_operand, right_operand, result))
+		self.quads.append((operator.value, left_operand, right_operand, result))
 		self.OperandStack.push(result)
-		self.TypeStack.push(Types.BOOL)
+		# Relational operators *always* return a boolean
+		self.TypeStack.push(DType.BOOL)
 		debug()
 
 
@@ -79,45 +86,55 @@ class nintCompiler:
 		debug('check_addsub')
 		top = self.OperatorStack.peek()
 		debug(top)
-		if not (top == '+' or top == '-'):
+
+		if not (top == Operator.ADD or top == Operator.SUB):
 			return
+
 		right_operand = self.OperandStack.pop()
 		right_type = self.TypeStack.pop()
 		left_operand = self.OperandStack.pop()
 		left_type = self.TypeStack.pop()
 		operator = self.OperatorStack.pop()
 		debug(operator, left_type, right_type) # TODO: remove
+
 		result = Temp.getTmp().toString()
-		debug("Adds quad")
-		self.quads.append((operator, left_operand, right_operand, result))
 		self.OperandStack.push(result)
-		self.TypeStack.push('temporal')
+		self.TypeStack.push(SemanticCube.check(operator, left_type, right_type))
+
+		debug("Adds quad")
+		self.quads.append((operator.value, left_operand, right_operand, result))
+
 		debug()
 
 	def check_multdiv(self):
 		debug('check_multdiv')
 		top = self.OperatorStack.peek()
 		debug(top)
-		if not (top == '*' or top == '/'):
+
+		if not (top == Operator.MULT or top == Operator.DIV):
 			return
+
 		right_operand = self.OperandStack.pop()
 		right_type = self.TypeStack.pop()
 		left_operand = self.OperandStack.pop()
 		left_type = self.TypeStack.pop()
 		operator = self.OperatorStack.pop()
 		debug(operator, left_type, right_type) # TODO: remove
+
 		result = Temp.getTmp().toString()
-		debug("Adds quad")
-		self.quads.append((operator, left_operand, right_operand, result))
 		self.OperandStack.push(result)
-		self.TypeStack.push('temporal') # TODO: change this
+		self.TypeStack.push(SemanticCube.check(operator, left_type, right_type))
+
+		debug("Adds quad")
+		self.quads.append((operator.value, left_operand, right_operand, result))
+
 		debug()
 
 	def ifelse_start_jump(self):
 		debug("ifelse_start_jump")
 		expression_type = self.TypeStack.pop()
 		debug(expression_type)
-		if expression_type != Types.BOOL:
+		if expression_type != DType.BOOL:
 			raise Exception("Type mismatch on line {}".format('SOMELINE TODO FIX THIS')); # TODO: maybe make a static function for this?
 		result = self.OperandStack.pop()
 		debug("ADD START QUAD FOR IFELSE")
@@ -133,6 +150,7 @@ class nintCompiler:
 	def fill(self, pending_jump_pos, jump_location):
 		debug("fill")
 		self.quads[pending_jump_pos][3] = jump_location # TODO: definitely make a class for this
+
 	def ifelse_start_else(self):
 		debug("ifelse_start_else")
 		debug("ADD ELSE QUAD GOTO")
@@ -148,22 +166,23 @@ class nintCompiler:
 	def assignment_quad(self):
 		debug("assignment_quad")
 		operator = self.OperatorStack.pop()
-		if operator != '=':
-			raise Exception("Something went wrong") # TODO: Change this
+
+		assert operator == '='
 
 		right_operand = self.OperandStack.pop()
 		right_type = self.TypeStack.pop()
 		left_operand = self.OperandStack.pop()
 		left_type = self.TypeStack.pop()
 
-		print("<{}> = <{}>".format(left_type, right_type))
-		# assert right_type == left_type, "Type mismatch: assignment does not match" # TODO: probably change this
+		debug("<{}> = <{}>".format(left_type, right_type))
 
-		self.quads.append((operator, right_operand, None, left_operand))
+		# TODO: probably change this
+		# TODO: what if left type is a new decl/assignment?
+		assert right_type == left_type, "Type mismatch: assignment does not match"
+
+		self.quads.append((operator.value, right_operand, None, left_operand))
 
 		debug()
-
-
 
 
 	# While
@@ -173,16 +192,18 @@ class nintCompiler:
 		counter = len(self.quads) # TODO: counter
 		self.JumpStack.push(counter)
 
+
 	def while_block_start(self):
 		debug("while_block_start")
 		expression_type = self.TypeStack.pop()
-		if expression_type != Types.BOOL:
+		if expression_type != DType.BOOL:
 			raise Exception("Type mismatch on line {}".format("SOMELINE FIX THIS TODO"))
 		result = self.OperandStack.pop()
 		debug("ADD QUAD: while block_start GOTOF")
 		self.quads.append([GOTOF, result, None, None])
 		counter = len(self.quads)
 		self.JumpStack.push(counter - 1) # TODO: counter
+
 
 	def while_end(self):
 		debug("while_end")

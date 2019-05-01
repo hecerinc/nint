@@ -12,6 +12,7 @@ grammar nint;
 import sys
 sys.path.append("C:/dev/compiler")
 from nintCompiler import nintCompiler
+from symbols.Types import DType
 }
 
 
@@ -97,10 +98,10 @@ expressionList
 
 
 literal
-    : INT_LITERAL {self.nint.add_constant($INT_LITERAL.text, 'int')}
-    | FLOAT_LITERAL {self.nint.add_constant($FLOAT_LITERAL.text, 'float')}
-    | STRING_LITERAL {self.nint.add_constant($STRING_LITERAL.text, 'string')}
-    | BOOL_LITERAL {self.nint.add_constant($BOOL_LITERAL.text, 'bool')}
+    : INT_LITERAL {self.nint.add_constant($INT_LITERAL.text, DType.INT)}
+    | FLOAT_LITERAL {self.nint.add_constant($FLOAT_LITERAL.text, DType.FLOAT)}
+    | STRING_LITERAL {self.nint.add_constant($STRING_LITERAL.text, DType.STRING)}
+    | BOOL_LITERAL {self.nint.add_constant($BOOL_LITERAL.text, DType.BOOL)}
     | RANGE
     | NULL
     | ID {self.nint.add_var($ID.text)}
