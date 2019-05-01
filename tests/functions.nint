@@ -1,5 +1,18 @@
-function uno(int a, int b) :: void {
-	a = a + b;
+// function uno(int a, int b) :: void {
+// 	a = a + b;
+// }
+
+// uno(2, 3);
+
+function sum(int a, int b) :: int {
+	return a + b;
+	// if(a > b) {
+	// 	return a + b;
+	// }
+	// else {
+	// 	return a - b;
+	// }
+	// return; // this should throw an error
 }
 
-uno(2, 3);
+int c = sum(2, 2);

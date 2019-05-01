@@ -3,6 +3,9 @@
 from .Symbol import Symbol
 from .Variable import Variable
 from .Env import Env
+from .Env import Env
+from .Types import DType
+
 
 
 class Function(Symbol):
@@ -32,6 +35,11 @@ class Function(Symbol):
 		''''A list of parameter types in the order in which they were defined'''
 		# TODO: do we need the names? we can use tuples
 		return self._param_list
+
+	@property
+	def is_void(self):
+		return self.dtype == DType.VOID
+
 
 	@start_pos.setter
 	def start_pos(self, pos):

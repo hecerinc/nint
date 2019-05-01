@@ -25,6 +25,7 @@ ENDPROC = 'ENDPROC'
 PARAM = 'PARAM'
 ERA = 'ERA'
 GOSUB = 'GOSUB'
+RETURN = 'RETURN'
 GLOBAL = '__global'
 
 debug_mode = os.getenv('NINT_ENV', 'debug')
@@ -32,7 +33,7 @@ debug_mode = os.getenv('NINT_ENV', 'debug')
 def debug(*args):
 	if debug_mode == 'debug':
 		for arg in args:
-			print("D: {}".format(arg))
+			print("[nint]: {}".format(arg))
 		if len(args) == 0:
 			print()
 
@@ -50,6 +51,7 @@ class nintCompiler:
 		self.GScope = Env() # Global env?
 		self._current_func = None
 		self._call_proc = None
+		self._func_returned = None # Check if the current function has returned something
 		self._param_k = None
 		# Generate the global scope and insert it into the functions directory
 		# gscope = Function(GLOBAL, None, VOID)
@@ -71,6 +73,7 @@ class nintCompiler:
 		# Check if it's not already been defined
 		if current_scope.exists(identifier):
 			raise Exception('Double declaration. {} has already been declared in this context.'.format(identifier))
+
 		var = Variable(identifier, DType(type_str))
 		current_scope.insert(var)
 
@@ -84,6 +87,8 @@ class nintCompiler:
 		# Check that the variable has already been declared _somewhere_ (could be current, could be upper scopes)
 		assert variable is not None, "Name {} has not been declared.".format(token)
 
+		debug("add_var: OperandStack.push({})".format(variable.name))
+		debug("add_var: TypeStack.push({})".format(variable.dtype))
 		self.OperandStack.push(variable.name)
 		self.TypeStack.push(variable.dtype)
 
@@ -99,7 +104,7 @@ class nintCompiler:
 		self.TypeStack.push(dtype)
 		debug()
 
-	def add_operator(self, op):
+	def add_operator(self, op: str):
 		''' Adds operator op to the OperatorStack'''
 		debug("add_operator")
 		debug("Operator.push({})".format(op))
@@ -111,14 +116,15 @@ class nintCompiler:
 	def check_relop(self):
 		debug("check_relop")
 		top = self.OperatorStack.peek()
-		if top not in Operators.RELOPS:
+		debug('top: {}'.format(top))
+		if top not in RELOPS:
 			return
 		right_operand = self.OperandStack.pop()
 		right_type = self.TypeStack.pop()
 		left_operand = self.OperandStack.pop()
 		left_type = self.TypeStack.pop()
 		operator = self.OperatorStack.pop()
-		debug(operator, left_type, right_type) # TODO: remove
+		debug((operator, left_type, right_type)) # TODO: remove
 		result = Temp.getTmp().toString()
 		debug("Adds quad")
 		self.quads.append((operator.value, left_operand, right_operand, result))
@@ -131,7 +137,6 @@ class nintCompiler:
 	def check_addsub(self):
 		debug('check_addsub')
 		top = self.OperatorStack.peek()
-		debug(top)
 
 		if not (top == Operator.ADD or top == Operator.SUB):
 			return
@@ -141,7 +146,7 @@ class nintCompiler:
 		left_operand = self.OperandStack.pop()
 		left_type = self.TypeStack.pop()
 		operator = self.OperatorStack.pop()
-		debug(operator, left_type, right_type) # TODO: remove
+		debug((operator, left_type, right_type)) # TODO: remove
 
 		result = Temp.getTmp().toString()
 		self.OperandStack.push(result)
@@ -155,7 +160,6 @@ class nintCompiler:
 	def check_multdiv(self):
 		debug('check_multdiv')
 		top = self.OperatorStack.peek()
-		debug(top)
 
 		if not (top == Operator.MULT or top == Operator.DIV):
 			return
@@ -165,7 +169,7 @@ class nintCompiler:
 		left_operand = self.OperandStack.pop()
 		left_type = self.TypeStack.pop()
 		operator = self.OperatorStack.pop()
-		debug(operator, left_type, right_type) # TODO: remove
+		debug((operator, left_type, right_type)) # TODO: remove
 
 		result = Temp.getTmp().toString()
 		self.OperandStack.push(result)
@@ -176,6 +180,8 @@ class nintCompiler:
 
 		debug()
 
+	# If-Else
+	# --------------------------------------------
 	def ifelse_start_jump(self):
 		debug("ifelse_start_jump")
 		expression_type = self.TypeStack.pop()
@@ -190,8 +196,9 @@ class nintCompiler:
 	def ifelse_end_jump(self):
 		debug("ifelse_end_jump")
 		counter = len(self.quads) # TODO: change this
-		debug(counter)
+		debug('counter: {}'.format(counter))
 		self.fill(self.JumpStack.pop(), counter)
+		debug()
 
 	def fill(self, pending_jump_pos, jump_location):
 		debug("fill")
@@ -223,7 +230,8 @@ class nintCompiler:
 		debug("<{}> = <{}>".format(left_type, right_type))
 
 		# TODO: probably change this
-		# TODO: what if left type is a new decl/assignment?
+		# TODO: these don't need to be *exactly* the same, they just need to be compatible
+		# example: float a = 10
 		assert right_type == left_type, "Type mismatch: assignment does not match"
 
 		self.quads.append((operator.value, right_operand, None, left_operand))
@@ -276,6 +284,7 @@ class nintCompiler:
 		func = Function(name, current_scope)
 		current_scope.insert(func)
 		self._current_func = func
+		self._func_returned = False
 		self.ScopeStack.push(func.varsTable)
 
 	def procedure_add_params(self, function_name, params):
@@ -284,11 +293,12 @@ class nintCompiler:
 		for param in params:
 			self.procedure_add_param(function_name, param['type'], param['id'])
 
-	def procedure_add_param(self, function_name, dtype, pname):
+	def procedure_add_param(self, function_name: str, dtype: str, pname: str):
 		'''Call function.add_param()'''
 		debug('procedure_add_param')
 		assert self._current_func is not None
-		var = Variable(pname, dtype)
+		# TODO: check that the parameter has not already been defined
+		var = Variable(pname, DType(dtype))
 		self._current_func.add_param(var)
 
 
@@ -299,18 +309,26 @@ class nintCompiler:
 
 	def procedure_set_type(self, dtype):
 		'''Set the return type of this function'''
-		self._current_func.update_type(dtype)
+		self._current_func.update_type(DType(dtype))
 
 	def procedure_update_size(self):
 		'''Once we know the number of temps, and local variables defined, we can update the size'''
 		# TODO: define this
 		debug('procedure_update_size')
 
-	def procedure_returns(self):
+	def procedure_return(self, returns_expresion = False):
 		'''Generate a RETURN command'''
-		# TODO: define this
-		debug('procedure_returns')
-		pass
+		debug('procedure_return')
+		retval = None
+		if returns_expresion:
+			retval = self.OperandStack.pop()
+			retval_type = self.TypeStack.pop()
+			assert self._current_func.dtype == retval_type, 'Type mismatch: value returned does not match function signature.'
+			self._func_returned = True
+		else:
+			assert self._current_func.is_void, 'Type mismatch: no value returned in non-void function.'
+		self.quads.append((RETURN, retval, None, None))
+		debug()
 
 	def procedure_end(self):
 		'''Generate an ENDPROC'''
@@ -319,9 +337,14 @@ class nintCompiler:
 		# TODO: resolve new Temp() generator for each procedure
 		# TODO: resolve any ERAs here
 		# self.procedure_update_size()
+
+		# if function is non-void, it returned something
+		if not self._current_func.is_void and not self._func_returned:
+			raise Exception("Non-void function must return a valid value.")
+
 		self.quads.append((ENDPROC, None, None, None))
-		debug('FUNCTION TYPE:', self._current_func.dtype)
-		self._current_func.varsTable.print()
+		debug(('FUNCTION TYPE:', self._current_func.dtype))
+		# self._current_func.varsTable.print()
 		self._current_func = None
 		self.ScopeStack.pop()
 
@@ -337,6 +360,7 @@ class nintCompiler:
 		call_proc = self.GScope.find(method_name)
 		assert call_proc is not None
 		self._call_proc = call_proc
+		debug()
 
 
 	def method_call_param_start(self):
@@ -346,6 +370,7 @@ class nintCompiler:
 		self._param_k = 0
 		# TODO: add stack/list to keep track of these
 		self.quads.append([ERA, 'SIZE', None, None]) # ActivationRecord expansion
+		debug()
 
 	def method_call_param(self):
 		'''Get the kth parameter for the function call and perform semantic validations'''
@@ -374,9 +399,24 @@ class nintCompiler:
 
 	def method_call_end(self):
 		'''Generate a GOSUB to take control flow the procedure'''
+		debug('method_call_end')
 		func = self._call_proc
 		name = func.name
 		init_address = func.start_pos
+		is_void = func.is_void
+		return_type = func.dtype
+
 		self._call_proc = None
 		self._param_k = None
 		self.quads.append((GOSUB, name, None, init_address))
+
+		# If the function returned something, we should assign it to a local temporary var
+		if not is_void:
+			result = Temp.getTmp().toString()
+			self.OperandStack.push(result)
+			self.TypeStack.push(return_type)
+			self.quads.append(('=', name, None, result))
+		else: # TODO: test this thoroughly, not sure if this is going to work
+			assert self.OperatorStack.peek() is not Operator.ASSIGN, 'Void function does not return anything. Cannot assign void value.'
+
+		debug()

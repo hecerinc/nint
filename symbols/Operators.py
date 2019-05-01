@@ -2,7 +2,6 @@
 
 from enum import Enum
 
-RELOPS = ['<', '>', '<=', '>=']
 
 
 class Operator(Enum):
@@ -12,4 +11,9 @@ class Operator(Enum):
 	SUB = '-'
 	MULT = '*'
 	DIV = '/'
+	LT = '<'
+	LTE = '<='
+	GT = '>'
+	GTE = '>='
 
+RELOPS = [Operator.GT, Operator.LT, Operator.LTE, Operator.GTE]

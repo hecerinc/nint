@@ -12,7 +12,7 @@ class SemanticCube:
 	@staticmethod
 	def check(operator, left_operand: DType, right_operand: DType) -> DType:
 		result = SemanticCube._check(operator, left_operand, right_operand)
-		nintCompiler.debug(operator, left_operand, right_operand)
+		nintCompiler.debug((operator, left_operand, right_operand))
 		if result == DType.ERROR:
 			raise Exception('Type mismatch: No baila mija con el señor', left_operand, right_operand)
 		return result
