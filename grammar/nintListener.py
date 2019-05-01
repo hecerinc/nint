@@ -122,21 +122,12 @@ class nintListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by nintParser#declarator.
-    def enterDeclarator(self, ctx:nintParser.DeclaratorContext):
+    # Enter a parse tree produced by nintParser#initializer.
+    def enterInitializer(self, ctx:nintParser.InitializerContext):
         pass
 
-    # Exit a parse tree produced by nintParser#declarator.
-    def exitDeclarator(self, ctx:nintParser.DeclaratorContext):
-        pass
-
-
-    # Enter a parse tree produced by nintParser#initalizer.
-    def enterInitalizer(self, ctx:nintParser.InitalizerContext):
-        pass
-
-    # Exit a parse tree produced by nintParser#initalizer.
-    def exitInitalizer(self, ctx:nintParser.InitalizerContext):
+    # Exit a parse tree produced by nintParser#initializer.
+    def exitInitializer(self, ctx:nintParser.InitializerContext):
         pass
 
 

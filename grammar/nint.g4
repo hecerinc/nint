@@ -59,7 +59,7 @@ stmt = None
     | RETURN expression? ';'
     | expression ';'
     | functionDeclaration
-    | declaration
+    | declaration ';'
     ;
 
 
@@ -122,17 +122,14 @@ indexList
 
 /* Declaration */
 declaration
-    : typeSpecifier declarator ';'
+    : typeSpecifier ID {self.nint.add_var_declaration($typeSpecifier.text, $ID.text)} ('=' {self.nint.add_var($ID.text)} {self.nint.add_operator('=')} init=initializer {self.nint.assignment_quad()})?
     ;
-declarator
-    : ID ('=' initalizer)?
-    ;
-initalizer
+initializer
     : vectorInitializer
     | expression
     ;
 vectorInitializer
-    : '[' (initalizer (',' initalizer)* )? ']'
+    : '[' (initializer (',' initializer)* )? ']'
     ;
 
 /* Functions */

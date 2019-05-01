@@ -1,6 +1,11 @@
 # nintCompiler.py
 
 import os
+import sys
+
+# Hide traceback from exceptions:
+# sys.tracebacklimit = None
+
 
 from utils.Stack import Stack
 from icg.Temp import Temp
@@ -59,18 +64,40 @@ class nintCompiler:
 		for i, quad in enumerate(self.quads):
 			print("{})".format(i), '\t'.join(map(printable, quad)))
 
-	def add_var(self, token):
+	def add_var_declaration(self, type_str: str, identifier: str):
+		'''Add variable to the varsTable of the current context'''
+		debug("add_var_declaration")
+		current_scope = self.ScopeStack.peek()
+		# Check if it's not already been defined
+		if current_scope.exists(identifier):
+			raise Exception('Double declaration. {} has already been declared in this context.'.format(identifier))
+		var = Variable(identifier, DType(type_str))
+		current_scope.insert(var)
+
+
+	def add_var(self, token: str):
+		'''Add variable to the operand stack'''
 		debug("add_var")
-		self.OperandStack.push(token)
-		self.TypeStack.push('var') # TODO: get actual dtype
+
+		current_scope = self.ScopeStack.peek()
+		variable = current_scope.get(token)
+		# Check that the variable has already been declared _somewhere_ (could be current, could be upper scopes)
+		assert variable is not None, "Name {} has not been declared.".format(token)
+
+		self.OperandStack.push(variable.name)
+		self.TypeStack.push(variable.dtype)
+
 		debug()
 
 	def add_constant(self, token, dtype: DType):
+		'''Adds a constant to the operand stack'''
+		debug("add_constant")
 		debug("Operand.push({})".format(token))
 		debug("TypeStack.push({})".format(dtype))
 		debug()
 		self.OperandStack.push(token)
 		self.TypeStack.push(dtype)
+		debug()
 
 	def add_operator(self, op):
 		''' Adds operator op to the OperatorStack'''
@@ -78,6 +105,7 @@ class nintCompiler:
 		debug("Operator.push({})".format(op))
 		operator = Operator(op)
 		self.OperatorStack.push(operator) # TODO: change this to an enum
+		debug()
 
 	# TODO: refactor the check_* functions
 	def check_relop(self):
@@ -185,7 +213,7 @@ class nintCompiler:
 		debug("assignment_quad")
 		operator = self.OperatorStack.pop()
 
-		assert operator == '='
+		assert operator == Operator.ASSIGN
 
 		right_operand = self.OperandStack.pop()
 		right_type = self.TypeStack.pop()
