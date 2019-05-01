@@ -38,10 +38,9 @@ $ctx.s = self.nint
 
 
 primary
-    : '(' expression ')'
-    | literal
+    : literal
+    | '(' expression ')'
     ;
-
 
 block
     : '{' statement* '}'
@@ -88,9 +87,13 @@ exp
     : term {self.nint.check_addsub()} (bop=('+'|'-') {self.nint.add_operator($bop.text)} term {self.nint.check_addsub()})*
     ;
 term
-    : p1=primary {self.nint.check_multdiv()} (bop=('*'|'/') {self.nint.add_operator($bop.text)} p2=primary {self.nint.check_multdiv()})*
+    : factor {self.nint.check_multdiv()} (bop=('*'|'/') {self.nint.add_operator($bop.text)} factor {self.nint.check_multdiv()})*
     ;
 
+factor
+    : primary
+    | functionCall
+    ;
 
 expressionList
     : expression (',' expression)*

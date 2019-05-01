@@ -77,6 +77,15 @@ class nintListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by nintParser#factor.
+    def enterFactor(self, ctx:nintParser.FactorContext):
+        pass
+
+    # Exit a parse tree produced by nintParser#factor.
+    def exitFactor(self, ctx:nintParser.FactorContext):
+        pass
+
+
     # Enter a parse tree produced by nintParser#expressionList.
     def enterExpressionList(self, ctx:nintParser.ExpressionListContext):
         pass

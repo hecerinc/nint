@@ -15,4 +15,5 @@ function sum(int a, int b) :: int {
 	// return; // this should throw an error
 }
 
-int c = sum(2, 2);
+int a = 20;
+int c = a*sum(2, 2);
