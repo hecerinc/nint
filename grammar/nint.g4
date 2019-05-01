@@ -116,7 +116,7 @@ forInit
     ;
 
 indexList
-    : DIGIT+ (',' indexList)?
+    : INT_LITERAL (',' indexList)?
     ;
 
 
@@ -212,9 +212,9 @@ WHILE:              'while';
 
 // Literals
 BOOL_LITERAL: 'true' | 'false';
-FLOAT_LITERAL: ([0-9]*'.')?[0-9]+;
+FLOAT_LITERAL: [0-9]*'.'[0-9]+;
 ID: [a-zA-Z][a-zA-Z0-9_]*;
-DIGIT: [0-9];
+fragment DIGIT: [0-9];
 INT_LITERAL: DIGIT+;
 RANGE: DIGIT+'..'DIGIT+;
 STRING_LITERAL:  '"' (~["\\\r\n])* '"' |  '\'' (~["\\\r\n])* '\'';
