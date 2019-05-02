@@ -384,6 +384,7 @@ class nintCompiler:
 		kth_param_type = self._call_proc.param_list[self._param_k]
 
 		# Check param_type
+		# TODO: estos no **tienen** que ser iguales, solo compatibles
 		assert param_type == kth_param_type # TODO: Aqui es donde entra el cubo semantico
 
 		self.quads.append((PARAM, param, None, 'param{}'.format(self._param_k+1)))
@@ -408,7 +409,7 @@ class nintCompiler:
 
 		self._call_proc = None
 		self._param_k = None
-		self.quads.append((GOSUB, name, None, init_address))
+		self.quads.append((GOSUB, name, None, init_address)) # TODO: migaja de pan pa saber donde voy a regresar
 
 		# If the function returned something, we should assign it to a local temporary var
 		if not is_void:
