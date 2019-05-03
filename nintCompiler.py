@@ -16,7 +16,7 @@ from semantics.Cube import SemanticCube
 from symbols.Env import Env # Symbol Table
 from symbols.Function import Function
 from symbols.Variable import Variable
-from icg.CompMem import CompMem as Memory
+from icg.CompMem import CompMem as Memory, MemType
 
 # TODO: probs should remove this from here
 GOTO = 'goto'
@@ -49,7 +49,7 @@ class nintCompiler:
 		self.OperandStack = Stack()
 		self.TypeStack = Stack()
 		self.JumpStack = Stack()
-		self.GScope = Env() # Global env?
+		self.GScope = Env(None, MemType.GLOBAL) # Global env?
 
 		# Function helpers
 		self._current_func = None
@@ -62,9 +62,8 @@ class nintCompiler:
 		self.ScopeStack = Stack() # Keep track of the current Scope
 		self.ScopeStack.push(self.GScope)
 
-		self.Memory = Memory()
+		# Temporal memory
 		self._Temporal = Temp()
-
 
 		self.quads = []
 
@@ -82,7 +81,7 @@ class nintCompiler:
 			raise Exception('Double declaration. {} has already been declared in this context.'.format(identifier))
 
 		dtype = DType(type_str)
-		address = self.Memory.next_address(dtype)
+		address = current_scope.memory.next_address(dtype)
 
 		var = Variable(identifier, dtype, address)
 		current_scope.insert(var)
@@ -134,7 +133,7 @@ class nintCompiler:
 		left_operand = self.OperandStack.pop()
 		left_type = self.TypeStack.pop()
 		operator = self.OperatorStack.pop()
-		debug((operator, left_type, right_type)) # TODO: remove
+		debug((operator, left_type, right_type))
 		result = self._Temporal.next(DType.BOOL)
 		debug("Adds quad")
 		self.quads.append((operator.value, left_operand.address, right_operand.address, result.address))
@@ -156,7 +155,7 @@ class nintCompiler:
 		left_operand = self.OperandStack.pop()
 		left_type = self.TypeStack.pop()
 		operator = self.OperatorStack.pop()
-		debug((operator, left_type, right_type)) # TODO: remove
+		debug((operator, left_type, right_type))
 
 		result_type = SemanticCube.check(operator, left_type, right_type)
 		result = self._Temporal.next(result_type)
@@ -180,7 +179,7 @@ class nintCompiler:
 		left_operand = self.OperandStack.pop()
 		left_type = self.TypeStack.pop()
 		operator = self.OperatorStack.pop()
-		debug((operator, left_type, right_type)) # TODO: remove
+		debug((operator, left_type, right_type))
 
 		result_type = SemanticCube.check(operator, left_type, right_type)
 		result = self._Temporal.next(result_type)
@@ -299,18 +298,26 @@ class nintCompiler:
 		self._func_returned = False
 		self.ScopeStack.push(func.varsTable)
 
-	def procedure_add_params(self, function_name, params):
+	def procedure_add_params(self, params):
 		'''Add the total params to the current function'''
 		debug('procedure_add_params')
 		for param in params:
-			self.procedure_add_param(function_name, param['type'], param['id'])
+			self.procedure_add_param(param['type'], param['id'])
 
-	def procedure_add_param(self, function_name: str, dtype: str, pname: str):
+	def procedure_add_param(self, dtype: str, pname: str):
 		'''Call function.add_param()'''
 		debug('procedure_add_param')
+
 		assert self._current_func is not None
-		# TODO: check that the parameter has not already been defined
-		var = Variable(pname, DType(dtype))
+
+		current_scope = self.ScopeStack.peek()
+
+		if current_scope.exists(pname):
+			raise Exception('Redefinition of parameter {} in function signature'.format(pname))
+
+		data_type = DType(dtype)
+		address = current_scope.memory.next_address(data_type)
+		var = Variable(pname, data_type, address)
 		self._current_func.add_param(var)
 
 
@@ -339,14 +346,13 @@ class nintCompiler:
 			self._func_returned = True
 		else:
 			assert self._current_func.is_void, 'Type mismatch: no value returned in non-void function.'
-		self.quads.append((RETURN, retval, None, None))
+		self.quads.append((RETURN, retval.address, None, None))
 		debug()
 
 	def procedure_end(self):
 		'''Generate an ENDPROC'''
 		debug('procedure_end')
 		# TODO: release the current vartable?
-		# TODO: resolve new Temp() generator for each procedure
 		# TODO: resolve any ERAs here
 		# self.procedure_update_size()
 
@@ -356,9 +362,10 @@ class nintCompiler:
 
 		self.quads.append((ENDPROC, None, None, None))
 		debug(('FUNCTION TYPE:', self._current_func.dtype))
-		# self._current_func.varsTable.print()
+
 		self._current_func = None
 		self.ScopeStack.pop()
+		debug()
 
 	# Function calls
 	# --------------------------------------------
@@ -399,7 +406,7 @@ class nintCompiler:
 		# TODO: estos no **tienen** que ser iguales, solo compatibles
 		assert param_type == kth_param_type # TODO: Aqui es donde entra el cubo semantico
 
-		self.quads.append((PARAM, param, None, 'param{}'.format(self._param_k+1)))
+		self.quads.append((PARAM, param.address, None, 'param{}'.format(self._param_k+1)))
 
 
 	def method_call_param_end(self):

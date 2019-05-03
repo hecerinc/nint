@@ -28,9 +28,9 @@ class CompMem:
 	}
 
 
-	def __init__(self):
+	def __init__(self, memType = MemType.LOCAL):
 		super().__init__()
-		self._memtype = MemType.LOCAL
+		self._memtype = memType
 
 		self._counters = {
 			DType.INT: 0,
@@ -63,7 +63,7 @@ class CompMem:
 		If the constant already exists, it will return the stored variable'''
 		const_bucket = CompMem.CONST_TABLE.get(dtype)
 		var = const_bucket.get(value, None)
-		if var == None:
+		if var is None:
 			# insert it into the table
 
 			address = len(const_bucket) + 1

@@ -1,13 +1,24 @@
 # Env.py
 
 # Represents the symbol tables (Function Dir and Variables Table)
+import sys
+sys.path.append("C:/dev/compiler")
+
 from .Symbol import Symbol
+from icg.CompMem import CompMem, MemType
+
 
 class Env:
 	'''Represents a scope (an environment) in which variables and methods can be defined'''
-	def __init__(self, previous: "Env" = None):
+	def __init__(self, previous: "Env" = None, memType = MemType.LOCAL):
 		self._previous = previous
 		self._table = dict() # Symbol table
+		self._memory = CompMem(memType)
+
+	@property
+	def memory(self):
+		return self._memory
+
 
 	def get(self, s: str) -> Symbol:
 		'''Gets a symbol from the symbol table by recursively checking the previous tables'''
@@ -31,7 +42,7 @@ class Env:
 	def insert(self, sym: Symbol):
 		'''Inserts a symbol into the symbol directory'''
 		# TODO: where do we check that it doesn't already exist?
-		assert(sym.name not in self._table) # TODO: remove?
+		assert sym.name not in self._table
 		self._table.update({sym.name: sym})
 
 	def print(self):

@@ -4,7 +4,7 @@
 
 // uno(2, 3);
 
-function sum(int a, int b) :: int {
+function sum(int a, int a) :: int {
 	return a + b;
 	// if(a > b) {
 	// 	return a + b;
