@@ -1,17 +1,26 @@
 # Temp.py
 
-class Temp():
+import sys
+sys.path.append("C:/dev/compiler")
+
+from .CompMem import CompMem as Memory
+from .CompMem import MemType
+from symbols.Types import DType
+from symbols.Variable import Variable
+
+class Temp(Memory):
 	""" AVAIL to get the next temporary """
-	counter = 0
 
-	def __init__(self, token):
-		super(Temp, self).__init__()
-		self.token = token
+	def __init__(self):
+		super().__init__()
+		self._memtype = MemType.TEMP
 
-	@staticmethod
-	def getTmp():
-		Temp.counter = Temp.counter + 1
-		return Temp("t{}".format(Temp.counter))
+		# Only for debugging purposes (to set a readable var name)
+		self._tmp_counter = 0
 
-	def toString(self):
-		return self.token
+	# @staticmethod
+	def next(self, dtype: DType) -> Variable:
+		'''Generate a new temp variable of type dtype'''
+		self._tmp_counter += 1
+		address = self.next_address(dtype)
+		return Variable('t{}'.format(self._tmp_counter), dtype, address)

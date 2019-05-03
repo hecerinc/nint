@@ -16,6 +16,7 @@ from semantics.Cube import SemanticCube
 from symbols.Env import Env # Symbol Table
 from symbols.Function import Function
 from symbols.Variable import Variable
+from icg.CompMem import CompMem as Memory
 
 # TODO: probs should remove this from here
 GOTO = 'goto'
@@ -49,6 +50,8 @@ class nintCompiler:
 		self.TypeStack = Stack()
 		self.JumpStack = Stack()
 		self.GScope = Env() # Global env?
+
+		# Function helpers
 		self._current_func = None
 		self._call_proc = None
 		self._func_returned = None # Check if the current function has returned something
@@ -58,6 +61,10 @@ class nintCompiler:
 		# self.FunDir.insert(gscope) # TODO: are objects passed by reference here?
 		self.ScopeStack = Stack() # Keep track of the current Scope
 		self.ScopeStack.push(self.GScope)
+
+		self.Memory = Memory()
+		self._Temporal = Temp()
+
 
 		self.quads = []
 
@@ -74,7 +81,10 @@ class nintCompiler:
 		if current_scope.exists(identifier):
 			raise Exception('Double declaration. {} has already been declared in this context.'.format(identifier))
 
-		var = Variable(identifier, DType(type_str))
+		dtype = DType(type_str)
+		address = self.Memory.next_address(dtype)
+
+		var = Variable(identifier, dtype, address)
 		current_scope.insert(var)
 
 
@@ -89,7 +99,7 @@ class nintCompiler:
 
 		debug("add_var: OperandStack.push({})".format(variable.name))
 		debug("add_var: TypeStack.push({})".format(variable.dtype))
-		self.OperandStack.push(variable.name)
+		self.OperandStack.push(variable)
 		self.TypeStack.push(variable.dtype)
 
 		debug()
@@ -100,7 +110,7 @@ class nintCompiler:
 		debug("Operand.push({})".format(token))
 		debug("TypeStack.push({})".format(dtype))
 		debug()
-		self.OperandStack.push(token)
+		self.OperandStack.push(Memory.constant(dtype, token)) # TODO: should we parse?
 		self.TypeStack.push(dtype)
 		debug()
 
@@ -125,9 +135,9 @@ class nintCompiler:
 		left_type = self.TypeStack.pop()
 		operator = self.OperatorStack.pop()
 		debug((operator, left_type, right_type)) # TODO: remove
-		result = Temp.getTmp().toString()
+		result = self._Temporal.next(DType.BOOL)
 		debug("Adds quad")
-		self.quads.append((operator.value, left_operand, right_operand, result))
+		self.quads.append((operator.value, left_operand.address, right_operand.address, result.address))
 		self.OperandStack.push(result)
 		# Relational operators *always* return a boolean
 		self.TypeStack.push(DType.BOOL)
@@ -148,12 +158,13 @@ class nintCompiler:
 		operator = self.OperatorStack.pop()
 		debug((operator, left_type, right_type)) # TODO: remove
 
-		result = Temp.getTmp().toString()
+		result_type = SemanticCube.check(operator, left_type, right_type)
+		result = self._Temporal.next(result_type)
 		self.OperandStack.push(result)
-		self.TypeStack.push(SemanticCube.check(operator, left_type, right_type))
+		self.TypeStack.push(result_type)
 
 		debug("Adds quad")
-		self.quads.append((operator.value, left_operand, right_operand, result))
+		self.quads.append((operator.value, left_operand.address, right_operand.address, result.address))
 
 		debug()
 
@@ -171,12 +182,13 @@ class nintCompiler:
 		operator = self.OperatorStack.pop()
 		debug((operator, left_type, right_type)) # TODO: remove
 
-		result = Temp.getTmp().toString()
+		result_type = SemanticCube.check(operator, left_type, right_type)
+		result = self._Temporal.next(result_type)
 		self.OperandStack.push(result)
-		self.TypeStack.push(SemanticCube.check(operator, left_type, right_type))
+		self.TypeStack.push(result_type)
 
 		debug("Adds quad")
-		self.quads.append((operator.value, left_operand, right_operand, result))
+		self.quads.append((operator.value, left_operand.address, right_operand.address, result.address))
 
 		debug()
 
@@ -234,7 +246,7 @@ class nintCompiler:
 		# example: float a = 10
 		assert right_type == left_type, "Type mismatch: assignment does not match"
 
-		self.quads.append((operator.value, right_operand, None, left_operand))
+		self.quads.append((operator.value, right_operand.address, None, left_operand.address))
 
 		debug()
 
@@ -395,7 +407,7 @@ class nintCompiler:
 		# i.e. we consumed all of the parameters
 		# i.e. the parameter call matches the function definition
 		# NOTE: when the argument list ends, the k pointer should be pointing at the last elem (len-1)
-		assert self._param_k == len(self._call_proc.param_list)-1
+		assert self._param_k == len(self._call_proc.param_list)-1, "Parameter count mismatch."
 
 
 	def method_call_end(self):
@@ -413,10 +425,10 @@ class nintCompiler:
 
 		# If the function returned something, we should assign it to a local temporary var
 		if not is_void:
-			result = Temp.getTmp().toString()
+			result = self._Temporal.next(return_type)
 			self.OperandStack.push(result)
 			self.TypeStack.push(return_type)
-			self.quads.append(('=', name, None, result))
+			self.quads.append(('=', name, None, result.address))
 		else: # TODO: test this thoroughly, not sure if this is going to work
 			assert self.OperatorStack.peek() is not Operator.ASSIGN, 'Void function does not return anything. Cannot assign void value.'
 
