@@ -17,11 +17,13 @@ class nintVM:
 	"""docstring for nintVM"""
 	def __init__(self, filename: str):
 		super().__init__()
+		self.ip = 0 # Instruction pointer
 		self.quads = []
 		self.ConstTable = dict()
-		self.CallStack = Stack()
-		self.ip = 0 # Instruction pointer
+
+		# Memcounts
 		self._memcount_temp = 0
+		self._memcount_global = 0
 
 
 		self.load_data(filename)
@@ -33,6 +35,8 @@ class nintVM:
 
 		# TODO: Create memory sections here
 		self.Temp = Memory(self._memcount_temp)
+		self._GlobalMemory = Memory(self._memcount_global)
+		self.CallStack = Stack() # Local memory
 
 		# Instruction set
 		self.nintIS = {
@@ -87,18 +91,27 @@ class nintVM:
 		self.Temp.set_value(quad[3], result)
 
 	def sub(self, quad):
-		pass
+		left_operand = self.get_value(quad[1])
+		right_operand = self.get_value(quad[2])
+		result = left_operand - right_operand
+		self.Temp.set_value(quad[3], result)
 
 	def mult(self, quad):
-		pass
+		left_operand = self.get_value(quad[1])
+		right_operand = self.get_value(quad[2])
+		result = left_operand * right_operand
+		self.Temp.set_value(quad[3], result)
 
 	def div(self, quad):
-		pass
+		left_operand = self.get_value(quad[1])
+		right_operand = self.get_value(quad[2])
+		if right_operand == 0:
+			raise Exception("Runtime Exception: Division by 0.")
+		result = left_operand / right_operand
+		self.Temp.set_value(quad[3], result)
 
 	def _print(self, quad):
-		address = quad[3]
-		# Get the corresponding value from the memory
-		arg = self.get_value(address)
+		arg = self.get_value(quad[3])
 		print(arg)
 
 

@@ -4,3 +4,8 @@ int a = 10;
 int b = 10;
 
 a*5 + b*10/12 + 15 - 23;
+
+
+// Divide by 0
+
+print(a/0);
