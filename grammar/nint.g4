@@ -223,7 +223,7 @@ ID: [a-zA-Z][a-zA-Z0-9_]*;
 fragment DIGIT: [0-9];
 INT_LITERAL: DIGIT+;
 RANGE: DIGIT+'..'DIGIT+;
-STRING_LITERAL:  '"' (~["\\\r\n])* '"' |  '\'' (~["\\\r\n])* '\'';
+STRING_LITERAL:  '"' (~["\\\r\n])* '"' |  '\'' (~['\\\r\n])* '\'';
 
 // Separators
 COMMA:              ',';
