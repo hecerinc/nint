@@ -15,5 +15,6 @@ class Operator(Enum):
 	LTE = '<='
 	GT = '>'
 	GTE = '>='
+	PRINT = 'print'
 
 RELOPS = [Operator.GT, Operator.LT, Operator.LTE, Operator.GTE]

@@ -173,7 +173,8 @@ typeSpecifier
 /* Function calls */
 
 functionCall
-    : ID {self.nint.method_call_start($ID.text)} '(' {self.nint.method_call_param_start()} callArgs? ')' {self.nint.method_call_param_end()} {self.nint.method_call_end()}
+    : 'print' {self.nint.print_start()} '(' expression {self.nint.print_expression()} (',' expression {self.nint.print_expression()})* ')' {self.nint.print_end()}
+    | ID {self.nint.method_call_start($ID.text)} '(' {self.nint.method_call_param_start()} callArgs? ')' {self.nint.method_call_param_end()} {self.nint.method_call_end()}
     ;
 
 callArgs

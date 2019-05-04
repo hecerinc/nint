@@ -6,11 +6,9 @@ import sys
 # Hide traceback from exceptions:
 # sys.tracebacklimit = None
 
-
 from utils.Stack import Stack
 from icg.Temp import Temp
-from symbols.Operators import RELOPS
-from symbols.Operators import Operator
+from symbols.Operators import Operator, RELOPS
 from symbols.Types import DType
 from semantics.Cube import SemanticCube
 from symbols.Env import Env # Symbol Table
@@ -52,6 +50,7 @@ class nintCompiler:
 		self.GScope = Env(None, MemType.GLOBAL) # Global env?
 
 		# Function helpers
+		self._print = False
 		self._current_func = None
 		self._call_proc = None
 		self._func_returned = None # Check if the current function has returned something
@@ -439,4 +438,16 @@ class nintCompiler:
 		else: # TODO: test this thoroughly, not sure if this is going to work
 			assert self.OperatorStack.peek() is not Operator.ASSIGN, 'Void function does not return anything. Cannot assign void value.'
 
+		debug()
+
+	def print_start(self):
+		self._print = True
+	def print_end(self):
+		self._print = False
+	def print_expression(self):
+		debug("print_expression")
+		assert self._print
+		op = self.OperandStack.pop()
+		self.TypeStack.pop()
+		self.quads.append((Operator.PRINT.value, None, None, op.address))
 		debug()
