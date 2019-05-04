@@ -20,6 +20,7 @@ def main(argv):
 	# test = walker.walk(listen, tree)
 	# print(tree.s.gen())
 	result.s.intercode()
+	result.s.serialize()
 	# print(len(tree.s))
 
 if __name__ == '__main__':

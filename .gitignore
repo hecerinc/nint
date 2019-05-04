@@ -1,6 +1,7 @@
 .antlr/
 todo.md
 temp/
+*.bytecode
 
 grammar/nintParser.py
 grammar/nintLexer.py

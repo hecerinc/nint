@@ -2,6 +2,7 @@
 
 import os
 import sys
+import pickle
 
 # Hide traceback from exceptions:
 # sys.tracebacklimit = None
@@ -64,6 +65,22 @@ class nintCompiler:
 		self._Temporal = Temp()
 
 		self.quads = []
+
+
+	def serialize(self, filename = "out.nint.bytecode"):
+		'''Serialize the quads and the quads into an intermediate
+		obj file to be read by the VM.'''
+		const_map = dict()
+		for const_dict in Memory.CONST_TABLE.values():
+			for const, var in const_dict.items():
+				val = const
+				if var.dtype == DType.STRING:
+					val = val.strip("'").strip('"')
+				const_map[var.address] = val
+		data = [self.quads, const_map]
+		with open(filename, 'wb') as f:
+			pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+
 
 	def intercode(self):
 		'''Print the quadruples'''
