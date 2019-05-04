@@ -32,9 +32,8 @@ debug_mode = os.getenv('NINT_ENV', 'debug')
 def debug(*args):
 	if debug_mode == 'debug':
 		for arg in args:
-			print("[nint]: {}".format(arg))
-		if len(args) == 0:
-			print()
+			print("[nint]: {}".format(arg), end = '')
+		print()
 
 def printable(item):
 	return ' ' if item is None else str(item)
@@ -69,7 +68,9 @@ class nintCompiler:
 	def intercode(self):
 		'''Print the quadruples'''
 		for i, quad in enumerate(self.quads):
-			print("{})".format(i), '\t'.join(map(printable, quad)))
+			if debug_mode == 'debug':
+				print("{}) ".format(i), end='')
+			print('\t'.join(map(printable, quad)))
 
 	def add_var_declaration(self, type_str: str, identifier: str):
 		'''Add variable to the varsTable of the current context'''
@@ -370,12 +371,11 @@ class nintCompiler:
 	# --------------------------------------------
 	def method_call_start(self, method_name):
 		'''Verify that the procedure exists in DirFunc'''
-		# current_scope = self.ScopeStack.peek()
-		# current_scope.
 		debug('method_call_start')
+
 		if not self.GScope.exists(method_name):
 			raise Exception('Method {} has not been defined'.format(method_name))
-		call_proc = self.GScope.find(method_name)
+		call_proc = self.GScope.find(method_name) # Assumes all functions are defined in the global scope
 		assert call_proc is not None
 		self._call_proc = call_proc
 		debug()
