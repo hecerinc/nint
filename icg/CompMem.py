@@ -12,6 +12,7 @@ MemType = Enum('MEMTYPE', 'GLOBAL LOCAL CONST TEMP')
 class CompMem:
 	"""docstring for CompMem"""
 
+	# TODO: maybe we don't need this anymore now that the DType enum is int-valued
 	VAR_TYPE_IDS = {
 		DType.INT: 1,
 		DType.BOOL: 2,
@@ -37,7 +38,7 @@ class CompMem:
 			DType.BOOL: 0,
 			DType.STRING: 0,
 			DType.FLOAT: 0,
-			'Other': 0
+			'Other': 0 # TODO: Find out what this is for
 		}
 
 

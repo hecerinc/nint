@@ -6,23 +6,11 @@ import pickle
 
 from utils.Stack import Stack
 from symbols.Operators import Operator
-from icg.CompMem import MemType
+from vm.Memory import Memory, is_constant, is_temp
 from nintCompiler import debug
 
 
 debug_mode = os.getenv('NINT_ENV', 'debug')
-
-# GLOBAL LOCAL CONST TEMP
-def is_constant(addr: str) -> bool:
-	type_indicator = int(addr[0])
-	memtype = MemType(type_indicator)
-	return memtype == MemType.CONST
-
-
-def is_temp(addr: str) -> bool:
-	type_indicator = int(addr[0])
-	memtype = MemType(type_indicator)
-	return memtype == MemType.TEMP
 
 
 class nintVM:
@@ -33,6 +21,8 @@ class nintVM:
 		self.ConstTable = dict()
 		self.CallStack = Stack()
 		self.ip = 0 # Instruction pointer
+		self._memcount_temp = 0
+
 
 		self.load_data(filename)
 		self._total_quads = len(self.quads)
@@ -40,7 +30,9 @@ class nintVM:
 		if debug_mode == 'debug':
 			for quad in self.quads:
 				debug(quad)
+
 		# TODO: Create memory sections here
+		self.Temp = Memory(self._memcount_temp)
 
 		# Instruction set
 		self.nintIS = {
@@ -59,6 +51,7 @@ class nintVM:
 		self.quads = data[0] # quads
 		# TODO: I need to parse this table and get the actual values with their real types
 		self.ConstTable = data[1] # consttable
+		self._memcount_temp = data[2]
 
 	def run(self):
 		'''Run the actual code'''
@@ -88,7 +81,10 @@ class nintVM:
 		pass
 
 	def add(self, quad):
-		pass
+		left_operand = self.get_value(quad[1])
+		right_operand = self.get_value(quad[2])
+		result = left_operand + right_operand
+		self.Temp.set_value(quad[3], result)
 
 	def sub(self, quad):
 		pass

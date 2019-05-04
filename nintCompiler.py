@@ -16,6 +16,8 @@ from symbols.Env import Env # Symbol Table
 from symbols.Function import Function
 from symbols.Variable import Variable
 from icg.CompMem import CompMem as Memory, MemType
+import utils.utils as utils
+
 
 # TODO: probs should remove this from here
 GOTO = 'goto'
@@ -73,11 +75,9 @@ class nintCompiler:
 		const_map = dict()
 		for const_dict in Memory.CONST_TABLE.values():
 			for const, var in const_dict.items():
-				val = const
-				if var.dtype == DType.STRING:
-					val = val.strip("'").strip('"')
-				const_map[var.address] = val
-		data = [self.quads, const_map]
+				const_map[var.address] = utils.parseVar(var)
+		temp_counters = self._Temporal._counters
+		data = [self.quads, const_map, temp_counters]
 		with open(filename, 'wb') as f:
 			pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
 
