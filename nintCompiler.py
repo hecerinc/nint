@@ -41,6 +41,9 @@ def debug(*args):
 def printable(item):
 	return ' ' if item is None else str(item)
 
+
+no_check = ['serialize', 'functionDirectory', 'intercode', '__check_main']
+
 class nintCompiler:
 	"""docstring for nintCompiler"""
 	def __init__(self):
@@ -52,6 +55,7 @@ class nintCompiler:
 		self.GScope = Env(None, MemType.GLOBAL) # Global env?
 
 		# Function helpers
+		self._found_main = False
 		self._print = False
 		self._current_func = None
 		self._call_proc = None
@@ -68,6 +72,24 @@ class nintCompiler:
 
 		self.quads = []
 
+		# Add GOTO main
+		self.quads.append([GOTO, None, None, None])
+
+
+	def __getattribute__(self, attr):
+		method = object.__getattribute__(self, attr)
+		# if not method:
+		# 	raise Exception("Method %s not implemented" % attr)
+		if callable(method):
+			name = method.__code__.co_name
+			if name not in no_check and not name.startswith('procedure'):
+				self.__check_main()
+		return method
+
+	def __check_main(self):
+		if not self._found_main and self._current_func is None:
+			self._found_main = True
+			self.quads[0][3] = len(self.quads)
 
 	def serialize(self, filename = "out.nint.bytecode"):
 		'''Serialize the quads and the quads into an intermediate
