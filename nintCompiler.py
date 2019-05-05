@@ -570,3 +570,11 @@ class nintCompiler:
 		self.TypeStack.pop()
 		self.quads.append((Operator.PRINT.value, None, None, op.address))
 		debug()
+
+
+	def paren_open(self):
+		self.OperatorStack.push(Operator.FAKE)
+
+	def paren_close(self):
+		self.OperatorStack.pop()
+

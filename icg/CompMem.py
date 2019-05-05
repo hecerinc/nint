@@ -82,6 +82,3 @@ class CompMem:
 			const_bucket.update({value: var})
 
 		return var
-
-
-

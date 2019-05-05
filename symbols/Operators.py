@@ -6,6 +6,8 @@ from enum import Enum
 
 class Operator(Enum):
 	"""Enum for operator"""
+	FAKE = '('
+
 	ASSIGN = '='
 	ADD = '+'
 	SUB = '-'

@@ -300,6 +300,7 @@ class nintVM:
 		retval = current_scope.get_val(quad[1])
 		self.FunDir[fname]['value'] = retval
 		self._returns_value = True
+		return self.endproc(None)
 
 
 	# Special functions

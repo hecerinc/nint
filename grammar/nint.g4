@@ -39,7 +39,7 @@ $ctx.s = self.nint
 
 primary
     : literal
-    | '(' expression ')'
+    | '(' {self.nint.paren_open()} expression ')' {self.nint.paren_close()}
     ;
 
 block
@@ -174,7 +174,7 @@ typeSpecifier
 
 functionCall
     : 'print' {self.nint.print_start()} '(' expression {self.nint.print_expression()} (',' expression {self.nint.print_expression()})* ')' {self.nint.print_end()}
-    | ID {self.nint.method_call_start($ID.text)} '(' {self.nint.method_call_param_start()} callArgs? ')' {self.nint.method_call_param_end()} {self.nint.method_call_end()}
+    | {self.nint.paren_open()} ID {self.nint.method_call_start($ID.text)} '(' {self.nint.method_call_param_start()} callArgs? ')' {self.nint.method_call_param_end()} {self.nint.method_call_end()} {self.nint.paren_close()}
     ;
 
 callArgs
