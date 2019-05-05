@@ -1,0 +1,7 @@
+function uno(int a) :: void {
+	print("Hello world");
+	return;
+	print("This is cool");
+}
+
+uno();

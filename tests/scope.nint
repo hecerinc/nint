@@ -1,0 +1,12 @@
+int a = 200;
+function uno() :: int {
+	int a = 4;
+	return 2 + a;
+}
+
+function dos() :: int {
+	return 2 + 2 + 2;
+}
+
+print(2 + 2);
+

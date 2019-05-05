@@ -1,3 +1,12 @@
-print(2 + 2);
-print(3 + 5 + 10 + 2 + 20);
-print(3*4*2);
+// print(2 + 2);
+// print(3 + 5 + 10 + 2 + 20);
+// print(3*4*2);
+
+
+int b = 10 + 10;
+
+function uno(int a) :: int  {
+	return a + a;
+}
+
+print(uno(b));
