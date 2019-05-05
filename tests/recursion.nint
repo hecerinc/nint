@@ -1,7 +1,9 @@
 function uno(int a) :: void {
-	print("Hello world");
-	return;
-	print("This is cool");
+	if(a == 0) {
+		return;
+	}
+	print(a);
+	uno(a-1);
 }
 
-uno();
+uno(10);

@@ -79,8 +79,8 @@ result = None
     | expression bop=('==' | '!=') {self.nint.add_operator($bop.text)} expression {self.nint.check_eqop()}
     | exp
     | <assoc=right> expression bop='**' expression // exponentiation
-    | expression bop='&&' expression
-    | expression bop='||' expression
+    | expression bop='&&' {self.nint.add_operator($bop.text)} expression {self.nint.check_and()}
+    | expression bop='||' {self.nint.add_operator($bop.text)} expression {self.nint.check_or()}
     ;
 
 exp

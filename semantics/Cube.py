@@ -95,6 +95,12 @@ class SemanticCube:
 			# GTE >=
 			(Operator.GTE, DType.FLOAT, DType.INT): DType.BOOL,
 			(Operator.GTE, DType.FLOAT, DType.FLOAT): DType.BOOL,
+
+
+			# BOOL
+			(Operator.AND, DType.BOOL, DType.BOOL): DType.BOOL,
+			(Operator.OR, DType.BOOL, DType.BOOL): DType.BOOL,
+
 		}
 
 		return cube.get((operator, left_operand, right_operand), DType.ERROR)

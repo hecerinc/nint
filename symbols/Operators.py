@@ -18,6 +18,9 @@ class Operator(Enum):
 	EQUAL = '=='
 	NEQ = '!='
 
+	AND = '&&'
+	OR = '||'
+
 
 	GOTO = 'goto'
 	GOTOF = 'gotoF'

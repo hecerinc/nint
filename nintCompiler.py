@@ -187,8 +187,50 @@ class nintCompiler:
 		self.quads.append((operator.value, left_operand.address, right_operand.address, result.address))
 		self.OperandStack.push(result)
 		self.TypeStack.push(result_type)
+		debug()
 
+	def check_and(self):
+		debug("check_and")
+		top = self.OperatorStack.peek()
+		debug('top: {}'.format(top))
+		if top is not Operator.AND:
+			return
+		right_operand = self.OperandStack.pop()
+		right_type = self.TypeStack.pop()
+		left_operand = self.OperandStack.pop()
+		left_type = self.TypeStack.pop()
+		operator = self.OperatorStack.pop()
+		debug((operator, left_type, right_type))
+		result_type = SemanticCube.check(operator, left_type, right_type)
+		# Relational operators *always* return a boolean
+		assert result_type is DType.BOOL
+		result = self._TempStack.peek().next(result_type)
+		debug("Adds quad")
+		self.quads.append((operator.value, left_operand.address, right_operand.address, result.address))
+		self.OperandStack.push(result)
+		self.TypeStack.push(result_type)
+		debug()
 
+	def check_or(self):
+		debug("check_or")
+		top = self.OperatorStack.peek()
+		debug('top: {}'.format(top))
+		if top is not Operator.OR:
+			return
+		right_operand = self.OperandStack.pop()
+		right_type = self.TypeStack.pop()
+		left_operand = self.OperandStack.pop()
+		left_type = self.TypeStack.pop()
+		operator = self.OperatorStack.pop()
+		debug((operator, left_type, right_type))
+		result_type = SemanticCube.check(operator, left_type, right_type)
+		# Relational operators *always* return a boolean
+		assert result_type is DType.BOOL
+		result = self._TempStack.peek().next(result_type)
+		debug("Adds quad")
+		self.quads.append((operator.value, left_operand.address, right_operand.address, result.address))
+		self.OperandStack.push(result)
+		self.TypeStack.push(result_type)
 		debug()
 
 	def check_eqop(self):
@@ -227,7 +269,7 @@ class nintCompiler:
 		left_operand = self.OperandStack.pop()
 		left_type = self.TypeStack.pop()
 		operator = self.OperatorStack.pop()
-		debug((operator, left_type, right_type))
+		debug((operator, left_operand.name, right_operand.name))
 
 		result_type = SemanticCube.check(operator, left_type, right_type)
 		result = self._TempStack.peek().next(result_type)

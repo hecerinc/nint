@@ -27,6 +27,7 @@ class nintVM:
 		self._memcount_global = 0
 
 		self._returns_value = False
+		self._newstack = None
 
 
 		self.load_data(filename)
@@ -64,6 +65,10 @@ class nintVM:
 			Operator.LTE: self.lte,
 			Operator.EQUAL: self.equals,
 			Operator.NEQ: self.neq,
+
+			# Boolean comparisons
+			Operator.AND: self.bool_and,
+			Operator.OR: self.bool_or,
 
 			# GOTOs
 			Operator.GOTO: self.goto,
@@ -179,6 +184,20 @@ class nintVM:
 		self.set_value(quad[3], result)
 
 
+	# Boolean operators
+	# -------------------------------------------------
+	def bool_and(self, quad):
+		left_operand = self.get_value(quad[1])
+		right_operand = self.get_value(quad[2])
+		result = left_operand and right_operand
+		self.set_value(quad[3], result)
+
+	def bool_or(self, quad):
+		left_operand = self.get_value(quad[1])
+		right_operand = self.get_value(quad[2])
+		result = left_operand or right_operand
+		self.set_value(quad[3], result)
+
 	# Arithmetic
 	# -------------------------------------------------
 
@@ -242,7 +261,8 @@ class nintVM:
 		sf = StackFrame(func_name, size_map)
 
 		# Add it to the callstack
-		self.CallStack.push(sf)
+		# self.CallStack.push(sf)
+		self._newstack = sf
 		debug()
 
 	def param(self, quad):
@@ -251,12 +271,14 @@ class nintVM:
 		assert current_scope is not None, "No callstack"
 		param = self.get_value(quad[1])
 		address = quad[3]
-		current_scope.set_value(address, param)
+		assert self._newstack is not None
+		self._newstack.set_value(address, param)
 		debug()
 
 	def gosub(self, quad):
 		debug('gosub')
-		sf = self.CallStack.peek()
+		sf = self._newstack
+		self.CallStack.push(sf)
 		sf.set_return_addr(self.ip)
 		self.ip = int(quad[3])-1  # minus 1 because next() adds one
 		debug()
@@ -265,6 +287,7 @@ class nintVM:
 		debug('endproc')
 		current_scope = self.CallStack.pop()
 		self.ip = current_scope.return_addr
+		self._newstack = None
 		del current_scope # vacuous statement but makes me feel good
 		debug()
 
