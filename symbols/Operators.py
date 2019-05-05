@@ -15,6 +15,20 @@ class Operator(Enum):
 	LTE = '<='
 	GT = '>'
 	GTE = '>='
+
+
+	GOTO = 'goto'
+	GOTOF = 'gotoF'
+	GOTOV = 'gotoV'
+	# Functions:
+
+	ENDPROC = 'ENDPROC'
+	PARAM = 'PARAM'
+	ERA = 'ERA'
+	GOSUB = 'GOSUB'
+	RETURN = 'RETURN'
+
 	PRINT = 'print'
+
 
 RELOPS = [Operator.GT, Operator.LT, Operator.LTE, Operator.GTE]

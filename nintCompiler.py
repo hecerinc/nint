@@ -10,7 +10,7 @@ import pickle
 from utils.Stack import Stack
 from icg.Temp import Temp
 from symbols.Operators import Operator, RELOPS
-from symbols.Types import DType
+from symbols.Types import DType, mapType
 from semantics.Cube import SemanticCube
 from symbols.Env import Env # Symbol Table
 from symbols.Function import Function
@@ -23,19 +23,15 @@ import utils.utils as utils
 GOTO = 'goto'
 GOTOF = 'gotoF'
 GOTOV = 'gotoV'
-ENDPROC = 'ENDPROC'
-PARAM = 'PARAM'
-ERA = 'ERA'
-GOSUB = 'GOSUB'
-RETURN = 'RETURN'
 GLOBAL = '__global'
 
 debug_mode = os.getenv('NINT_ENV', 'debug')
 
 def debug(*args):
 	if debug_mode == 'debug':
+		print("[nint]:", end= ' ')
 		for arg in args:
-			print("[nint]: {}".format(arg), end = '')
+			print(arg, end = ' ')
 		print()
 
 def printable(item):
@@ -69,6 +65,8 @@ class nintCompiler:
 
 		# Temporal memory
 		self._Temporal = Temp()
+		self._TempStack = Stack()
+		self._TempStack.push(self._Temporal)
 
 		self.quads = []
 
@@ -98,11 +96,21 @@ class nintCompiler:
 		for const_dict in Memory.CONST_TABLE.values():
 			for const, var in const_dict.items():
 				const_map[var.address] = utils.parseVar(var)
+
 		temp_counters = self._Temporal._counters
-		data = [self.quads, const_map, temp_counters]
+		global_counters = self.GScope.memory._counters
+		fun_dir = self.functionDirectory()
+
+		data = [self.quads, const_map, fun_dir, global_counters, temp_counters]
+
 		with open(filename, 'wb') as f:
 			pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
 
+	def functionDirectory(self):
+		result = dict()
+		for func in self.GScope.functions:
+			result.update({func.name: func.size_map})
+		return result
 
 	def intercode(self):
 		'''Print the quadruples'''
@@ -110,6 +118,7 @@ class nintCompiler:
 			if debug_mode == 'debug':
 				print("{}) ".format(i), end='')
 			print('\t'.join(map(printable, quad)))
+
 
 	def add_var_declaration(self, type_str: str, identifier: str):
 		'''Add variable to the varsTable of the current context'''
@@ -119,7 +128,7 @@ class nintCompiler:
 		if current_scope.exists(identifier):
 			raise Exception('Double declaration. {} has already been declared in this context.'.format(identifier))
 
-		dtype = DType(type_str)
+		dtype = mapType(type_str)
 		address = current_scope.memory.next_address(dtype)
 
 		var = Variable(identifier, dtype, address)
@@ -173,7 +182,7 @@ class nintCompiler:
 		left_type = self.TypeStack.pop()
 		operator = self.OperatorStack.pop()
 		debug((operator, left_type, right_type))
-		result = self._Temporal.next(DType.BOOL)
+		result = self._TempStack.peek().next(DType.BOOL)
 		debug("Adds quad")
 		self.quads.append((operator.value, left_operand.address, right_operand.address, result.address))
 		self.OperandStack.push(result)
@@ -197,7 +206,7 @@ class nintCompiler:
 		debug((operator, left_type, right_type))
 
 		result_type = SemanticCube.check(operator, left_type, right_type)
-		result = self._Temporal.next(result_type)
+		result = self._TempStack.peek().next(result_type)
 		self.OperandStack.push(result)
 		self.TypeStack.push(result_type)
 
@@ -221,7 +230,7 @@ class nintCompiler:
 		debug((operator, left_type, right_type))
 
 		result_type = SemanticCube.check(operator, left_type, right_type)
-		result = self._Temporal.next(result_type)
+		result = self._TempStack.peek().next(result_type)
 		self.OperandStack.push(result)
 		self.TypeStack.push(result_type)
 
@@ -336,6 +345,7 @@ class nintCompiler:
 		self._current_func = func
 		self._func_returned = False
 		self.ScopeStack.push(func.varsTable)
+		self._TempStack.push(func.varsTable.memory)
 
 	def procedure_add_params(self, params):
 		'''Add the total params to the current function'''
@@ -343,7 +353,7 @@ class nintCompiler:
 		for param in params:
 			self.procedure_add_param(param['type'], param['id'])
 
-	def procedure_add_param(self, dtype: str, pname: str):
+	def procedure_add_param(self, type_str: str, pname: str):
 		'''Call function.add_param()'''
 		debug('procedure_add_param')
 
@@ -354,7 +364,7 @@ class nintCompiler:
 		if current_scope.exists(pname):
 			raise Exception('Redefinition of parameter {} in function signature'.format(pname))
 
-		data_type = DType(dtype)
+		data_type = mapType(type_str)
 		address = current_scope.memory.next_address(data_type)
 		var = Variable(pname, data_type, address)
 		self._current_func.add_param(var)
@@ -365,9 +375,9 @@ class nintCompiler:
 		debug('procedure_mark_start')
 		self._current_func.start_pos = len(self.quads)
 
-	def procedure_set_type(self, dtype):
+	def procedure_set_type(self, type_str: str):
 		'''Set the return type of this function'''
-		self._current_func.update_type(DType(dtype))
+		self._current_func.update_type(mapType(type_str))
 
 	def procedure_update_size(self):
 		'''Once we know the number of temps, and local variables defined, we can update the size'''
@@ -383,9 +393,10 @@ class nintCompiler:
 			retval_type = self.TypeStack.pop()
 			assert self._current_func.dtype == retval_type, 'Type mismatch: value returned does not match function signature.'
 			self._func_returned = True
+			retval = retval.address
 		else:
 			assert self._current_func.is_void, 'Type mismatch: no value returned in non-void function.'
-		self.quads.append((RETURN, retval.address, None, None))
+		self.quads.append((Operator.RETURN.value, retval, None, None))
 		debug()
 
 	def procedure_end(self):
@@ -399,11 +410,12 @@ class nintCompiler:
 		if not self._current_func.is_void and not self._func_returned:
 			raise Exception("Non-void function must return a valid value.")
 
-		self.quads.append((ENDPROC, None, None, None))
+		self.quads.append((Operator.ENDPROC.value, None, None, None))
 		debug(('FUNCTION TYPE:', self._current_func.dtype))
 
 		self._current_func = None
 		self.ScopeStack.pop()
+		self._TempStack.pop()
 		debug()
 
 	# Function calls
@@ -425,8 +437,9 @@ class nintCompiler:
 		debug('method_call_param_start')
 		debug("Start param k counter at 0")
 		self._param_k = 0
+		fname = self._call_proc.name
 		# TODO: add stack/list to keep track of these
-		self.quads.append([ERA, 'SIZE', None, None]) # ActivationRecord expansion
+		self.quads.append([Operator.ERA.value, fname, None, None]) # ActivationRecord expansion
 		debug()
 
 	def method_call_param(self):
@@ -438,13 +451,15 @@ class nintCompiler:
 
 		assert self._param_k < len(self._call_proc.param_list)
 
-		kth_param_type = self._call_proc.param_list[self._param_k]
+		kth_param = self._call_proc.param_list[self._param_k]
+		kth_param_type = kth_param.dtype
+
 
 		# Check param_type
 		# TODO: estos no **tienen** que ser iguales, solo compatibles
 		assert param_type == kth_param_type # TODO: Aqui es donde entra el cubo semantico
 
-		self.quads.append((PARAM, param.address, None, 'param{}'.format(self._param_k+1)))
+		self.quads.append((Operator.PARAM.value, param.address, None, kth_param.address))
 
 
 	def method_call_param_end(self):
@@ -466,11 +481,11 @@ class nintCompiler:
 
 		self._call_proc = None
 		self._param_k = None
-		self.quads.append((GOSUB, name, None, init_address)) # TODO: migaja de pan pa saber donde voy a regresar
+		self.quads.append((Operator.GOSUB.value, name, None, init_address)) # TODO: migaja de pan pa saber donde voy a regresar
 
 		# If the function returned something, we should assign it to a local temporary var
 		if not is_void:
-			result = self._Temporal.next(return_type)
+			result = self._TempStack.peek().next(return_type)
 			self.OperandStack.push(result)
 			self.TypeStack.push(return_type)
 			self.quads.append(('=', name, None, result.address))
