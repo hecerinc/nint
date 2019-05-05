@@ -20,9 +20,6 @@ import utils.utils as utils
 
 
 # TODO: probs should remove this from here
-GOTO = 'goto'
-GOTOF = 'gotoF'
-GOTOV = 'gotoV'
 GLOBAL = '__global'
 
 debug_mode = os.getenv('NINT_ENV', 'debug')
@@ -71,7 +68,7 @@ class nintCompiler:
 		self.quads = []
 
 		# Add GOTO main
-		self.quads.append([GOTO, None, None, None])
+		self.quads.append([Operator.GOTO.value, None, None, None])
 
 
 	def __getattribute__(self, attr):
@@ -271,13 +268,12 @@ class nintCompiler:
 	def ifelse_start_jump(self):
 		debug("ifelse_start_jump")
 		expression_type = self.TypeStack.pop()
-		debug(expression_type)
 		if expression_type != DType.BOOL:
 			raise Exception("Type mismatch on line {}".format('SOMELINE TODO FIX THIS')); # TODO: maybe make a static function for this?
 		result = self.OperandStack.pop()
-		debug("ADD START QUAD FOR IFELSE")
-		self.quads.append([GOTOF, result, None, None])
+		self.quads.append([Operator.GOTOF.value, result.address, None, None])
 		self.JumpStack.push(len(self.quads)-1) # TODO: definitely change this. There has to be a better way to do this
+		debug()
 
 	def ifelse_end_jump(self):
 		debug("ifelse_end_jump")
@@ -293,7 +289,7 @@ class nintCompiler:
 	def ifelse_start_else(self):
 		debug("ifelse_start_else")
 		debug("ADD ELSE QUAD GOTO")
-		self.quads.append([GOTO, None, None, None])
+		self.quads.append([Operator.GOTO.value, None, None, None])
 
 		# Fill the false condition jump of the `if`
 		if_false_jump = self.JumpStack.pop()
@@ -340,7 +336,7 @@ class nintCompiler:
 			raise Exception("Type mismatch on line {}".format("SOMELINE FIX THIS TODO"))
 		result = self.OperandStack.pop()
 		debug("ADD QUAD: while block_start GOTOF")
-		self.quads.append([GOTOF, result, None, None])
+		self.quads.append([Operator.GOTOF.value, result.address, None, None])
 		counter = len(self.quads)
 		self.JumpStack.push(counter - 1) # TODO: counter
 
@@ -352,7 +348,7 @@ class nintCompiler:
 		return_pos = self.JumpStack.pop()
 
 		debug("ADD QUAD: while_end GOTO return")
-		self.quads.append([GOTO, None, None, return_pos])
+		self.quads.append([Operator.GOTO.value, None, None, return_pos])
 
 		counter = len(self.quads) # TODO: change this
 		self.fill(pending_while_end_jump, counter)

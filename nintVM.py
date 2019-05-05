@@ -49,12 +49,15 @@ class nintVM:
 
 		# Instruction set
 		self.nintIS = {
+
+			# Arithmetic
 			Operator.ASSIGN: self.assign,
 			Operator.ADD: self.add,
 			Operator.SUB: self.sub,
 			Operator.MULT: self.mult,
 			Operator.DIV: self.div,
 
+			# Relops
 			Operator.GT: self.gt,
 			Operator.GTE: self.gte,
 			Operator.LT: self.lt,
@@ -62,8 +65,11 @@ class nintVM:
 			Operator.EQUAL: self.equals,
 			Operator.NEQ: self.neq,
 
-
+			# GOTOs
 			Operator.GOTO: self.goto,
+			Operator.GOTOF: self.gotoF,
+			Operator.GOTOV: self.gotoV,
+
 			# Functions
 			Operator.GOSUB: self.gosub,
 			Operator.PARAM: self.param,
@@ -206,9 +212,20 @@ class nintVM:
 		self.set_value(quad[3], result)
 
 
+	# GOTOs
+	# -------------------------------------------------
+
 	def goto(self, quad):
 		quad_addr = int(quad[3])
 		self.ip = quad_addr - 1
+
+	def gotoF(self, quad):
+		expr_result = self.get_value(quad[1])
+		if not expr_result:
+			self.ip = int(quad[3]) -1
+
+	def gotoV(self, quad):
+		raise Exception('Not implemented')
 
 	# Functions
 	# ---------------------------------------------------------------

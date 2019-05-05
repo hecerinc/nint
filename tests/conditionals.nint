@@ -1,0 +1,18 @@
+if(4 < 3) {
+	print("if condition");
+}
+else {
+	print("else condition");
+}
+
+
+if(10 > 10) {
+	print("IF: 10 > 10");
+}
+else if(10 < 10) {
+	print("ELSEIF");
+}
+else if(10 == 10) {
+	// print("none of them");
+	print("10 == 10");
+}
