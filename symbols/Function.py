@@ -3,7 +3,6 @@
 from .Symbol import Symbol
 from .Variable import Variable
 from .Env import Env
-from .Env import Env
 from .Types import DType
 
 
@@ -13,7 +12,6 @@ class Function(Symbol):
 	def __init__(self, name, scope: Env = None, dtype = None):
 		super().__init__(name, dtype)
 		self._varsTable = Env(scope)
-		self._size = None
 		self._temp_counter = 0
 		self._start_pos = 0
 		self._param_list = []
@@ -23,8 +21,8 @@ class Function(Symbol):
 		return self._varsTable
 
 	@property
-	def size(self):
-		return self._size
+	def size_map(self):
+		return self._varsTable.memory._counters
 
 	@property
 	def start_pos(self):
@@ -46,6 +44,7 @@ class Function(Symbol):
 		self._start_pos = pos
 
 
+
 	def update_type(self, dtype):
 		'''Update the type of the function'''
 		self._dtype = dtype
@@ -57,7 +56,7 @@ class Function(Symbol):
 		#   2. Adding its type to the params list
 		#   3. Adjust the function size
 		self._varsTable.insert(variable)
-		self._param_list.append(variable.dtype)
+		self._param_list.append(variable)
 		self._temp_counter += 1
 
 
