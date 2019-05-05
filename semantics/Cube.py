@@ -42,6 +42,25 @@ class SemanticCube:
 			(Operator.DIV, DType.INT, DType.FLOAT): DType.FLOAT,
 
 
+			# Greater than >
+			(Operator.GT, DType.INT, DType.INT): DType.BOOL,
+			(Operator.GT, DType.INT, DType.FLOAT): DType.BOOL,
+
+			# Less than <
+			(Operator.LT, DType.INT, DType.INT): DType.BOOL,
+			(Operator.LT, DType.INT, DType.FLOAT): DType.BOOL,
+
+			# LTE <=
+			(Operator.LTE, DType.INT, DType.INT): DType.BOOL,
+			(Operator.LTE, DType.INT, DType.FLOAT): DType.BOOL,
+
+			# GTE >=
+			(Operator.GTE, DType.INT, DType.INT): DType.BOOL,
+			(Operator.GTE, DType.INT, DType.FLOAT): DType.BOOL,
+
+
+
+
 			# FLOAT
 			# ---------------------------------------------------------------
 
@@ -60,6 +79,22 @@ class SemanticCube:
 			# Division
 			(Operator.DIV, DType.FLOAT, DType.FLOAT): DType.FLOAT,
 			(Operator.DIV, DType.FLOAT, DType.INT): DType.FLOAT,
+
+			# Greater than >
+			(Operator.GT, DType.FLOAT, DType.INT): DType.BOOL,
+			(Operator.GT, DType.FLOAT, DType.FLOAT): DType.BOOL,
+
+			# Less than <
+			(Operator.LT, DType.FLOAT, DType.INT): DType.BOOL,
+			(Operator.LT, DType.FLOAT, DType.FLOAT): DType.BOOL,
+
+			# LTE <=
+			(Operator.LTE, DType.FLOAT, DType.INT): DType.BOOL,
+			(Operator.LTE, DType.FLOAT, DType.FLOAT): DType.BOOL,
+
+			# GTE >=
+			(Operator.GTE, DType.FLOAT, DType.INT): DType.BOOL,
+			(Operator.GTE, DType.FLOAT, DType.FLOAT): DType.BOOL,
 		}
 
 		return cube.get((operator, left_operand, right_operand), DType.ERROR)

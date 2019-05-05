@@ -55,6 +55,14 @@ class nintVM:
 			Operator.MULT: self.mult,
 			Operator.DIV: self.div,
 
+			Operator.GT: self.gt,
+			Operator.GTE: self.gte,
+			Operator.LT: self.lt,
+			Operator.LTE: self.lte,
+			Operator.EQUAL: self.equals,
+			Operator.NEQ: self.neq,
+
+
 			Operator.GOTO: self.goto,
 			# Functions
 			Operator.GOSUB: self.gosub,
@@ -127,6 +135,43 @@ class nintVM:
 		assert value is not None
 		target_address = quad[3]
 		self.set_value(target_address, value)
+
+
+	# Relational operators
+	# -------------------------------------------------
+	def equals(self, quad):
+		debug("equals")
+		left_operand = self.get_value(quad[1])
+		right_operand = self.get_value(quad[2])
+		result = left_operand == right_operand
+		self.set_value(quad[3], result)
+		debug()
+	def neq(self, quad):
+		left_operand = self.get_value(quad[1])
+		right_operand = self.get_value(quad[2])
+		result = left_operand != right_operand
+		self.set_value(quad[3], result)
+	def gt(self, quad):
+		left_operand = self.get_value(quad[1])
+		right_operand = self.get_value(quad[2])
+		result = left_operand > right_operand
+		self.set_value(quad[3], result)
+	def gte(self, quad):
+		left_operand = self.get_value(quad[1])
+		right_operand = self.get_value(quad[2])
+		result = left_operand >= right_operand
+		self.set_value(quad[3], result)
+	def lt(self, quad):
+		left_operand = self.get_value(quad[1])
+		right_operand = self.get_value(quad[2])
+		result = left_operand < right_operand
+		self.set_value(quad[3], result)
+	def lte(self, quad):
+		left_operand = self.get_value(quad[1])
+		right_operand = self.get_value(quad[2])
+		result = left_operand <= right_operand
+		self.set_value(quad[3], result)
+
 
 	# Arithmetic
 	# -------------------------------------------------
@@ -221,6 +266,8 @@ class nintVM:
 	# ---------------------------------------------------------------
 	def _print(self, quad):
 		arg = self.get_value(quad[3])
+		if isinstance(arg, bool):
+			arg = str(arg).lower()
 		print(arg)
 
 

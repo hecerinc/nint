@@ -182,14 +182,41 @@ class nintCompiler:
 		left_type = self.TypeStack.pop()
 		operator = self.OperatorStack.pop()
 		debug((operator, left_type, right_type))
-		result = self._TempStack.peek().next(DType.BOOL)
+		result_type = SemanticCube.check(operator, left_type, right_type)
+		# Relational operators *always* return a boolean
+		assert result_type is DType.BOOL
+		result = self._TempStack.peek().next(result_type)
 		debug("Adds quad")
 		self.quads.append((operator.value, left_operand.address, right_operand.address, result.address))
 		self.OperandStack.push(result)
-		# Relational operators *always* return a boolean
-		self.TypeStack.push(DType.BOOL)
+		self.TypeStack.push(result_type)
+
+
 		debug()
 
+	def check_eqop(self):
+		debug("check_eqop")
+		# TODO: implement this
+		top = self.OperatorStack.peek()
+		if top is not Operator.EQUAL and top is not Operator.NEQ:
+			return
+		right_operand = self.OperandStack.pop()
+		right_type = self.TypeStack.pop()
+		left_operand = self.OperandStack.pop()
+		left_type = self.TypeStack.pop()
+		operator = self.OperatorStack.pop()
+		debug((operator, left_type, right_type))
+		result_type = DType.BOOL
+		# result_type = SemanticCube.check(operator, left_type, right_type)
+		# TODO: rn we allow comparison of everything vs everything, is this correct?
+		# TODO: what if we compare a function name to a variable? (e.g. uno == 2)
+		result = self._TempStack.peek().next(result_type)
+		debug("Adds quad")
+		self.quads.append((operator.value, left_operand.address, right_operand.address, result.address))
+		self.OperandStack.push(result)
+		self.TypeStack.push(result_type)
+
+		debug()
 
 	def check_addsub(self):
 		debug('check_addsub')

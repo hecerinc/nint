@@ -15,6 +15,8 @@ class Operator(Enum):
 	LTE = '<='
 	GT = '>'
 	GTE = '>='
+	EQUAL = '=='
+	NEQ = '!='
 
 
 	GOTO = 'goto'
