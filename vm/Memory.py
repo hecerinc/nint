@@ -25,6 +25,16 @@ def is_temp(addr: str) -> bool:
 	memtype = MemType(type_indicator)
 	return memtype is MemType.TEMP
 
+def is_local(addr: str) -> bool:
+	type_indicator = int(addr[0])
+	memtype = MemType(type_indicator)
+	return memtype is MemType.LOCAL
+
+def is_global(addr: str) -> bool:
+	type_indicator = int(addr[0])
+	memtype = MemType(type_indicator)
+	return memtype is MemType.GLOBAL
+
 
 
 class Memory:
@@ -49,7 +59,7 @@ class Memory:
 
 	def set_value(self, address, value):
 		mem_bucket, real_address = self._parse_address(address)
-		assert real_address < len(mem_bucket)
+		assert real_address < len(mem_bucket), ("Out of bounds address", address, "\n", self._mem)
 		mem_bucket[real_address] = value
 
 	def get_val(self, address):
