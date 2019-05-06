@@ -14,11 +14,11 @@ from icg.CompMem import MemType
 from symbols.Types import DType
 
 # GLOBAL LOCAL CONST TEMP
+# TODO: clean these functions
 def is_constant(addr: str) -> bool:
 	type_indicator = int(addr[0])
 	memtype = MemType(type_indicator)
 	return memtype is MemType.CONST
-
 
 def is_temp(addr: str) -> bool:
 	type_indicator = int(addr[0])
@@ -48,6 +48,7 @@ class Memory:
 			DType.BOOL: [None]*var_count[DType.BOOL],
 			DType.STRING: [None]*var_count[DType.STRING],
 			DType.FLOAT: [None]*var_count[DType.FLOAT],
+			DType.VECTOR: [None]*var_count[DType.VECTOR]
 		}
 
 	def _parse_address(self, address):

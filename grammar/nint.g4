@@ -72,7 +72,7 @@ result = None
     | pipeStmt
     | '-' expression // negative numbers
     | <assoc=right> '!' expression // negation TODO: assoc=right?
-    | <assoc=right> expression '=' {self.nint.add_operator('=')} expression {self.nint.assignment_quad()} // assignment
+    | <assoc=right> expression '=' {self.nint.add_operator('=')} initializer {self.nint.assignment_quad()} // assignment
     | expression bop=('<=' | '>=' | '>' | '<') {self.nint.add_operator($bop.text)} expression {self.nint.check_relop()}
     | expression bop=('==' | '!=') {self.nint.add_operator($bop.text)} expression {self.nint.check_eqop()}
     | exp

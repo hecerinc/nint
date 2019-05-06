@@ -28,6 +28,7 @@ class nintVM:
 
 		self._returns_value = False
 		self._newstack = None
+		self._current_array = None
 
 
 		self.load_data(filename)
@@ -42,7 +43,6 @@ class nintVM:
 			debug()
 			debug()
 
-		# TODO: Create memory sections here
 		self.Temp = Memory(self._memcount_temp)
 		self._GlobalMemory = Memory(self._memcount_global)
 		self.CallStack = Stack() # Local memory
@@ -81,6 +81,12 @@ class nintVM:
 			Operator.ERA: self.expand_active_record,
 			Operator.ENDPROC: self.endproc,
 			Operator.RETURN: self.return_proc,
+
+			# Vectors
+			Operator.VECTOR: self.vector,
+			Operator.PUSH: self.push_elem,
+			Operator.ENDVECTOR: self.endvector,
+
 
 			Operator.PRINT: self._print
 		}
@@ -305,6 +311,23 @@ class nintVM:
 		self._returns_value = True
 		return self.endproc(None)
 
+
+	# Vectors
+	# ---------------------------------------------------------------
+	def vector(self, quad):
+		size = int(quad[3])
+		self._current_array = [None]*size
+		self._current_array_length = 0
+
+	def push_elem(self, quad):
+		value = self.get_value(quad[3])
+		self._current_array[self._current_array_length] = value
+		self._current_array_length += 1
+
+	def endvector(self, quad):
+		array = self._current_array
+		self.set_value(quad[3], array)
+		self._current_array = None
 
 	# Special functions
 	# ---------------------------------------------------------------

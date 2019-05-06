@@ -9,9 +9,9 @@ class DType(Enum):
 	BOOL = auto()
 	STRING = auto()
 	FLOAT = auto()
+	VECTOR = auto()
 	ERROR = auto()
 	VOID = auto()
-	VECTOR = auto()
 
 
 _typemap = {
