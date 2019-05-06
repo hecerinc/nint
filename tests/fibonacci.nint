@@ -5,7 +5,8 @@ function fibo(int n) :: int {
 	return fibo(n-1) + fibo(n-2);
 }
 
-print(fibo(10)); // 21
+print(fibo(8)); // 21
+print(fibo(10)); // 55
 
 
 

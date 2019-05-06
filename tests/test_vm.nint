@@ -3,10 +3,22 @@
 // print(3*4*2);
 
 
-int b = 10 + 10;
+// int b = 10 + 10;
 
-function uno(int a) :: int  {
-	return a + a;
+// function uno(int a) :: int  {
+// 	return a + a;
+// }
+
+// print(uno(b));
+
+
+// TODO: this fails to be parsed correctly (it should throw an error during compile time)
+// function print() :: void {
+// 	//
+// }
+
+function dos() :: void {
+	print('hello');
 }
 
-print(uno(b));
+dos();

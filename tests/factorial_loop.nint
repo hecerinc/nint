@@ -1,0 +1,17 @@
+// factorial_loop.nint
+
+function fact(int n) :: int {
+	int res = 1;
+	int i = 2;
+	while(i <= n) {
+		res = res * i;
+		i = i + 1;
+	}
+	return res;
+}
+
+int i = 0;
+while(i < 10) {
+	print(fact(i));
+	i = i + 1;
+}

@@ -35,7 +35,8 @@ def printable(item):
 	return ' ' if item is None else str(item)
 
 
-no_check = ['serialize', 'functionDirectory', 'intercode', '__check_main']
+no_check = ['serialize', 'functionDirectory', '__check_main']
+special_functions = ['print']
 
 class nintCompiler:
 	"""docstring for nintCompiler"""
@@ -403,7 +404,7 @@ class nintCompiler:
 		debug('procedure_start')
 		current_scope = self.ScopeStack.peek()
 		# Check that it's not already defined in the **current** scope
-		if current_scope.exists(name):
+		if current_scope.exists(name) or name in special_functions:
 			raise Exception('The name {} is already defined'.format(name))
 		func = Function(name, current_scope)
 		current_scope.insert(func)
@@ -532,7 +533,11 @@ class nintCompiler:
 		# i.e. we consumed all of the parameters
 		# i.e. the parameter call matches the function definition
 		# NOTE: when the argument list ends, the k pointer should be pointing at the last elem (len-1)
-		assert self._param_k == len(self._call_proc.param_list)-1, "Parameter count mismatch."
+		arglength = len(self._call_proc.param_list)
+		if arglength == 0:
+			assert self._param_k == 0, "Parameter count mismatch."
+		else:
+			assert self._param_k == arglength-1, "Parameter count mismatch."
 
 
 	def method_call_end(self):

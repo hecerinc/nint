@@ -127,7 +127,7 @@ class nintVM:
 			return self.ConstTable[address]
 		elif is_temp(address):
 			return self.Temp.get_val(address)
-		elif is_global(address):
+		elif is_global(address): # TODO: we could probably remove this now
 			return self._GlobalMemory.get_val(address)
 		return self.CallStack.peek().get_val(address)
 		# return self.mem.get_val(address)
@@ -135,6 +135,8 @@ class nintVM:
 	# Operation functions
 	# ---------------------------------------------------------------
 	def assign(self, quad):
+		debug("assign")
+		debug(quad)
 		if self._returns_value:
 			# Second param is function
 			self._returns_value = False
@@ -146,6 +148,7 @@ class nintVM:
 		assert value is not None
 		target_address = quad[3]
 		self.set_value(target_address, value)
+		debug()
 
 
 	# Relational operators
@@ -297,7 +300,7 @@ class nintVM:
 			return self.endproc(quad)
 		current_scope = self.CallStack.peek()
 		fname = current_scope.function_name
-		retval = current_scope.get_val(quad[1])
+		retval = self.get_value(quad[1])
 		self.FunDir[fname]['value'] = retval
 		self._returns_value = True
 		return self.endproc(None)
