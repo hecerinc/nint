@@ -59,6 +59,15 @@ class nintListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by nintParser#arrayAccess.
+    def enterArrayAccess(self, ctx:nintParser.ArrayAccessContext):
+        pass
+
+    # Exit a parse tree produced by nintParser#arrayAccess.
+    def exitArrayAccess(self, ctx:nintParser.ArrayAccessContext):
+        pass
+
+
     # Enter a parse tree produced by nintParser#exp.
     def enterExp(self, ctx:nintParser.ExpContext):
         pass

@@ -39,6 +39,9 @@ class Operator(Enum):
 	VECTOR = 'VECTOR'
 	PUSH = 'PUSH'
 	ENDVECTOR = 'ENDVECTOR'
+	DIM = 'DIM'
+	SUBSET = 'SUBSET'
+	ENDSUBSET = 'ENDSUBSET'
 
 	PRINT = 'print'
 

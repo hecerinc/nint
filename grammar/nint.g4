@@ -67,9 +67,9 @@ expression returns [result]
 result = None
 }
     : primary
-    | ID '[' (expression | ':')  ']' // `:` = all the dimension // array access
     | functionCall
     | pipeStmt
+    | arrayAccess
     | '-' expression // negative numbers
     | <assoc=right> '!' expression // negation TODO: assoc=right?
     | <assoc=right> expression '=' {self.nint.add_operator('=')} initializer {self.nint.assignment_quad()} // assignment
@@ -81,6 +81,9 @@ result = None
     | expression bop='||' {self.nint.add_operator($bop.text)} expression {self.nint.check_or()}
     ;
 
+arrayAccess
+    : ID '[' {self.nint.check_array($ID.text)} {self.nint.array_access_start()} {self.nint.paren_open()} (expression {self.nint.array_access_expression()} | ':') {self.nint.paren_close()} ']' {self.nint.array_access_end()} // `:` = all the dimension // array access
+    ;
 exp
     : term {self.nint.check_addsub()} (bop=('+'|'-') {self.nint.add_operator($bop.text)} term {self.nint.check_addsub()})*
     ;
@@ -90,6 +93,7 @@ term
 
 factor
     : primary
+    | arrayAccess
     | functionCall
     ;
 

@@ -29,6 +29,7 @@ class nintVM:
 		self._returns_value = False
 		self._newstack = None
 		self._current_array = None
+		self._subset_result = None
 
 
 		self.load_data(filename)
@@ -86,6 +87,11 @@ class nintVM:
 			Operator.VECTOR: self.vector,
 			Operator.PUSH: self.push_elem,
 			Operator.ENDVECTOR: self.endvector,
+
+			Operator.DIM: self.dim,
+			Operator.SUBSET: self.subset,
+			Operator.ENDSUBSET: self.endsubset,
+
 
 
 			Operator.PRINT: self._print
@@ -328,6 +334,26 @@ class nintVM:
 		array = self._current_array
 		self.set_value(quad[3], array)
 		self._current_array = None
+
+	def subset(self, quad):
+		self._current_array = self.get_value(quad[3])
+
+	def dim(self, quad):
+		array = self._current_array
+		subset_value = self.get_value(quad[3])
+		# Validate it's within bounds
+		assert subset_value >= 0 and subset_value < len(array), "Out of bounds exception: index is out of bounds."
+		if self._subset_result is None:
+			self._subset_result = []
+		self._subset_result.append(array[subset_value])
+
+	def endsubset(self, quad):
+		result = self._subset_result
+		if len(result) == 1:
+			result = result[0]
+		self.set_value(quad[3], result)
+		self._current_array = None
+		self._subset_result = None
 
 	# Special functions
 	# ---------------------------------------------------------------

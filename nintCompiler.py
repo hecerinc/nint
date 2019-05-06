@@ -58,7 +58,8 @@ class nintCompiler:
 
 		# Array helpers
 		self._is_array = False
-		self._array_type = None
+		self._array_access = None
+		self._array_access_dim = 0
 
 		# Generate the global scope and insert it into the functions directory
 		# gscope = Function(GLOBAL, None, VOID)
@@ -614,6 +615,47 @@ class nintCompiler:
 		array = self.OperandStack.peek()
 		self.quads[vec_pos][3] = array.dim1
 		self.quads.append((Operator.ENDVECTOR.value, None, None, array.address))
+
+	# Array access
+	def check_array(self, array_name: str):
+		current_scope = self.ScopeStack.peek()
+		array = current_scope.get(array_name)
+		assert array is not None, "Array {} has not been declared."
+		assert array.dtype is DType.VECTOR, "Object {} is not a vector.".format(array_name)
+		self._array_access = array
+
+	def array_access_start(self):
+		array = self._array_access
+		self.quads.append((Operator.SUBSET.value, None, None, array.address))
+
+	def array_access_expression(self):
+		pos = self.OperandStack.pop()
+		pos_type = self.TypeStack.pop()
+		assert pos_type is DType.INT, "Vector subset expression must be an integer."
+		self._array_access_dim += 1
+		# TODO: check that all expressions are different (we don't want [1,1])
+		self.quads.append((Operator.DIM.value, None, None, pos.address))
+
+	def array_access_end(self):
+		array = self._array_access
+		dtype = DType.VECTOR
+		result_is_scalar = self._array_access_dim == 1
+
+		if result_is_scalar:
+			dtype = array.scalar_type
+
+		result = self._TempStack.peek().next(dtype)
+
+		if not result_is_scalar:
+			result.scalar_type = array.scalar_type
+
+		self.OperandStack.push(result)
+		self.TypeStack.push(dtype)
+
+		self.quads.append((Operator.ENDSUBSET.value, None, None, result.address))
+		self._array_access_dim = 0
+		self._array_access = None
+
 
 
 
