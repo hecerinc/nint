@@ -11,9 +11,8 @@ from symbols.Variable import Variable
 class Temp(Memory):
 	""" AVAIL to get the next temporary """
 
-	def __init__(self):
-		super().__init__()
-		self._memtype = MemType.TEMP
+	def __init__(self, mem_type = MemType.TEMP):
+		super().__init__(mem_type)
 
 		# Only for debugging purposes (to set a readable var name)
 		self._tmp_counter = 0

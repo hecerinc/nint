@@ -14,10 +14,15 @@ class Env:
 		self._previous = previous
 		self._table = dict() # Symbol table
 		self._memory = CompMem(memType)
+		self._funcdir = []
 
 	@property
 	def memory(self):
 		return self._memory
+
+	@property
+	def functions(self):
+		return self._funcdir
 
 
 	def get(self, s: str) -> Symbol:
@@ -42,7 +47,11 @@ class Env:
 	def insert(self, sym: Symbol):
 		'''Inserts a symbol into the symbol directory'''
 		# TODO: where do we check that it doesn't already exist?
+		from .Function import Function
+
 		assert sym.name not in self._table
+		if isinstance(sym, Function):
+			self._funcdir.append(sym)
 		self._table.update({sym.name: sym})
 
 	def print(self):

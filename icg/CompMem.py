@@ -32,6 +32,7 @@ class CompMem:
 	def __init__(self, memType = MemType.LOCAL):
 		super().__init__()
 		self._memtype = memType
+		self._tmpcount = 0
 
 		self._counters = {
 			DType.INT: 0,
@@ -40,7 +41,6 @@ class CompMem:
 			DType.FLOAT: 0,
 			'Other': 0 # TODO: Find out what this is for
 		}
-
 
 	def next_address(self, dtype: DType) -> str:
 		# Check what type of memory this is (global, temporal, constant, local)
@@ -57,6 +57,13 @@ class CompMem:
 		full_address = "{}{}{}".format(memtype_id, datatype_id, address)
 
 		return full_address
+
+	def next(self, dtype: DType) -> Variable:
+		# TODO: if we arleady have this here, what is 'Temp.py' used for?
+		self._tmpcount += 1
+		addr = self.next_address(dtype)
+		return Variable('t{}'.format(self._tmpcount), dtype, addr)
+
 
 	@staticmethod
 	def constant(dtype: DType, value) -> Variable:
@@ -75,6 +82,3 @@ class CompMem:
 			const_bucket.update({value: var})
 
 		return var
-
-
-

@@ -39,7 +39,7 @@ $ctx.s = self.nint
 
 primary
     : literal
-    | '(' expression ')'
+    | '(' {self.nint.paren_open()} expression ')' {self.nint.paren_close()}
     ;
 
 block
@@ -52,7 +52,7 @@ statement returns [stmt]
 stmt = None
 }
     : block
-    | IF '(' expression ')' {self.nint.ifelse_start_jump()} block (ELSE {self.nint.ifelse_start_else()} block)? {self.nint.ifelse_end_jump()}
+    | IF '(' expression ')' {self.nint.ifelse_start_jump()} block (ELSE {self.nint.ifelse_start_else()} statement)? {self.nint.ifelse_end_jump()}
     | FOR '(' forInit? ';' expression? ';' expressionList? ')' block
     | WHILE {self.nint.while_condition_start()} '(' expression ')' {self.nint.while_block_start()} block {self.nint.while_end()}
     | RETURN expression? {self.nint.procedure_return($expression.ctx is not None)} ';'
@@ -71,16 +71,16 @@ result = None
     | functionCall
     | pipeStmt
     | '-' expression // negative numbers
-    | '!' expression // negation TODO: assoc=right?
+    | <assoc=right> '!' expression // negation TODO: assoc=right?
     // | a=expression bop=('*'|'/') b=expression
     // | a=expression bop=('+'|'-') b=expression
     | <assoc=right> expression '=' {self.nint.add_operator('=')} expression {self.nint.assignment_quad()} // assignment
     | expression bop=('<=' | '>=' | '>' | '<') {self.nint.add_operator($bop.text)} expression {self.nint.check_relop()}
-    | expression bop=('==' | '!=') expression
+    | expression bop=('==' | '!=') {self.nint.add_operator($bop.text)} expression {self.nint.check_eqop()}
     | exp
     | <assoc=right> expression bop='**' expression // exponentiation
-    | expression bop='&&' expression
-    | expression bop='||' expression
+    | expression bop='&&' {self.nint.add_operator($bop.text)} expression {self.nint.check_and()}
+    | expression bop='||' {self.nint.add_operator($bop.text)} expression {self.nint.check_or()}
     ;
 
 exp
@@ -174,7 +174,7 @@ typeSpecifier
 
 functionCall
     : 'print' {self.nint.print_start()} '(' expression {self.nint.print_expression()} (',' expression {self.nint.print_expression()})* ')' {self.nint.print_end()}
-    | ID {self.nint.method_call_start($ID.text)} '(' {self.nint.method_call_param_start()} callArgs? ')' {self.nint.method_call_param_end()} {self.nint.method_call_end()}
+    | {self.nint.paren_open()} ID {self.nint.method_call_start($ID.text)} '(' {self.nint.method_call_param_start()} callArgs? ')' {self.nint.method_call_param_end()} {self.nint.method_call_end()} {self.nint.paren_close()}
     ;
 
 callArgs

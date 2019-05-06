@@ -1,0 +1,9 @@
+function uno(int a) :: void {
+	if(a == 0) {
+		return;
+	}
+	print(a);
+	uno(a-1);
+}
+
+uno(10);

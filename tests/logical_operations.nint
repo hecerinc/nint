@@ -1,0 +1,17 @@
+print(2 > 3); // false
+print(3 == 3); // true
+print(8 > 3); // true
+print(3 >= 3); // true
+print(4 >= 3); // true
+print(4 < 3); // false
+print(8 < 10); // true
+print(10 <= 10); // true
+print(10 != 10); // false
+print(10 <= 250); // true
+
+
+int a = 10;
+int b = 20;
+
+print(a < b); // true
+print(a > b); // false

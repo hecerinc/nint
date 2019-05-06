@@ -1,0 +1,25 @@
+function fact(int n) :: int {
+	if(n == 0 || n == 1) {
+		return 1;
+	}
+	return n * fact(n - 1);
+}
+
+int i = 0;
+while(i < 10) {
+	print(fact(i));
+	i = i + 1;
+}
+
+/*
+1
+1
+2
+6
+24
+120
+720
+5040
+40320
+362880
+*/
