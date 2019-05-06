@@ -16,6 +16,7 @@ class Variable(Symbol):
 		self._value = value
 		self._scalar_type = None
 		self._dim1 = None
+		self._pointer_type = None
 
 	@property
 	def address(self):
@@ -45,6 +46,14 @@ class Variable(Symbol):
 	def scalar_type(self, st: DType):
 		self._scalar_type = st
 
+
+	@property
+	def pointer_type(self):
+		return self._pointer_type
+
+	@pointer_type.setter
+	def pointer_type(self, pt):
+		self._pointer_type = pt
 
 	def __str__(self):
 		return "{{name: {}, type: {}, address: {}, scalar_type: {}}}".format(self.name, self.dtype, self.address, self.scalar_type)

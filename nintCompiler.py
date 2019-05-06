@@ -377,6 +377,7 @@ class nintCompiler:
 
 		if left_type is DType.VECTOR:
 			assert left_operand.scalar_type == right_operand.scalar_type, "Vector types do not match"
+			# TODO: Also check the length if we have it
 
 		self.quads.append((operator.value, right_operand.address, None, left_operand.address))
 
@@ -638,13 +639,12 @@ class nintCompiler:
 
 	def array_access_end(self):
 		array = self._array_access
-		dtype = DType.VECTOR
 		result_is_scalar = self._array_access_dim == 1
 
-		if result_is_scalar:
-			dtype = array.scalar_type
+		result = self._TempStack.peek().next(DType.POINTER)
 
-		result = self._TempStack.peek().next(dtype)
+		dtype = array.scalar_type if result_is_scalar else DType.VECTOR
+		result.pointer_type = dtype
 
 		if not result_is_scalar:
 			result.scalar_type = array.scalar_type

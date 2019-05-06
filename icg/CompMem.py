@@ -19,6 +19,7 @@ class CompMem:
 		DType.STRING: 3,
 		DType.FLOAT: 4,
 		DType.VECTOR: 5,
+		DType.POINTER: 6,
 		'Other': 6
 	}
 
@@ -41,6 +42,7 @@ class CompMem:
 			DType.STRING: 0,
 			DType.FLOAT: 0,
 			DType.VECTOR: 0,
+			DType.POINTER: 0,
 			'Other': 0 # TODO: Find out what this is for
 		}
 

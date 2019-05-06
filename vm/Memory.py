@@ -35,6 +35,10 @@ def is_global(addr: str) -> bool:
 	memtype = MemType(type_indicator)
 	return memtype is MemType.GLOBAL
 
+def is_pointer(addr: str) -> bool:
+	dtype_indicator = int(addr[1])
+	dtype = DType(dtype_indicator)
+	return dtype is DType.POINTER
 
 
 class Memory:
@@ -48,7 +52,8 @@ class Memory:
 			DType.BOOL: [None]*var_count[DType.BOOL],
 			DType.STRING: [None]*var_count[DType.STRING],
 			DType.FLOAT: [None]*var_count[DType.FLOAT],
-			DType.VECTOR: [None]*var_count[DType.VECTOR]
+			DType.VECTOR: [None]*var_count[DType.VECTOR],
+			DType.POINTER: [None]*var_count[DType.POINTER],
 		}
 
 	def _parse_address(self, address):
@@ -58,7 +63,21 @@ class Memory:
 		real_address = int(address[2:])-1
 		return (mem_bucket, real_address)
 
-	def set_value(self, address, value):
+	def _set_pointer_value(self, pointer, value):
+		array_address = pointer[0]
+		subset = pointer[1]
+		bucket, real_address = self._parse_address(array_address)
+		# TODO: we could add dimension check here
+		if len(subset) == 1:
+			index = subset[0]
+			bucket[real_address][index] = value
+		else:
+			for i, index in enumerate(subset):
+				bucket[real_address][index] = value[i]
+
+	def set_value(self, address, value, pointer = None):
+		if pointer is not None:
+			return self._set_pointer_value(pointer, value)
 		mem_bucket, real_address = self._parse_address(address)
 		assert real_address < len(mem_bucket), ("Out of bounds address", address, "\n", self._mem)
 		mem_bucket[real_address] = value

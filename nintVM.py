@@ -6,7 +6,7 @@ import pickle
 
 from utils.Stack import Stack
 from symbols.Operators import Operator
-from vm.Memory import Memory, is_constant, is_temp, is_local, is_global
+from vm.Memory import Memory, is_constant, is_temp, is_local, is_global, is_pointer
 from vm.StackFrame import StackFrame
 from nintCompiler import debug
 
@@ -29,7 +29,8 @@ class nintVM:
 		self._returns_value = False
 		self._newstack = None
 		self._current_array = None
-		self._subset_result = None
+		self._current_array_address = None
+		self._subset = []
 
 
 		self.load_data(filename)
@@ -125,15 +126,26 @@ class nintVM:
 
 
 
-	def set_value(self, address: str, value):
-		if is_local(address):
-			self.CallStack.peek().set_value(address, value)
-		elif is_temp(address):
-			self.Temp.set_value(address, value)
-		else:
-			self.CallStack.peek().set_value(address, value)
 
-	def get_value(self, address):
+	def set_value(self, address: str, value, check_pointer = True):
+		pointer = None
+		if check_pointer and is_pointer(address):
+			pointer = self.get_value(address, False)
+		if is_local(address):
+			self.CallStack.peek().set_value(address, value, pointer)
+		elif is_temp(address):
+			self.Temp.set_value(address, value, pointer)
+		else:
+			self.CallStack.peek().set_value(address, value, pointer)
+
+	def get_value(self, address, check_pointer = True):
+		value = self._get_value(address)
+		if check_pointer and is_pointer(address):
+			value = self.dereference_pointer(value)
+		return value
+
+	def _get_value(self, address):
+
 		if is_constant(address):
 			debug(address, "is_constant")
 			return self.ConstTable[address]
@@ -143,6 +155,17 @@ class nintVM:
 			return self._GlobalMemory.get_val(address)
 		return self.CallStack.peek().get_val(address)
 		# return self.mem.get_val(address)
+
+	def dereference_pointer(self, pointer):
+		array_addr = pointer[0]
+		subset = pointer[1]
+		array = self._get_value(array_addr)
+		result = []
+		for index in subset:
+			result.append(array[index])
+		if len(result) == 1:
+			return result[0]
+		return result
 
 	# Operation functions
 	# ---------------------------------------------------------------
@@ -337,23 +360,27 @@ class nintVM:
 
 	def subset(self, quad):
 		self._current_array = self.get_value(quad[3])
+		self._current_array_address = quad[3]
 
 	def dim(self, quad):
 		array = self._current_array
 		subset_value = self.get_value(quad[3])
 		# Validate it's within bounds
 		assert subset_value >= 0 and subset_value < len(array), "Out of bounds exception: index is out of bounds."
-		if self._subset_result is None:
-			self._subset_result = []
-		self._subset_result.append(array[subset_value])
+		# 	self._subset_result = []
+		if self._subset is None:
+			self._subset = []
+		self._subset.append(subset_value)
+		# self._subset_result.append(array[subset_value])
 
 	def endsubset(self, quad):
-		result = self._subset_result
-		if len(result) == 1:
-			result = result[0]
-		self.set_value(quad[3], result)
+		result = (self._current_array_address, self._subset)
+		# if len(result) == 1:
+		# 	result = result[0]
+		self.set_value(quad[3], result, False)
+		self._current_array_address = None
 		self._current_array = None
-		self._subset_result = None
+		self._subset = None
 
 	# Special functions
 	# ---------------------------------------------------------------

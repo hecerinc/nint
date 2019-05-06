@@ -10,6 +10,7 @@ class DType(Enum):
 	STRING = auto()
 	FLOAT = auto()
 	VECTOR = auto()
+	POINTER = auto()
 	ERROR = auto()
 	VOID = auto()
 

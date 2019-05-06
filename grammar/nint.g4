@@ -82,7 +82,7 @@ result = None
     ;
 
 arrayAccess
-    : ID '[' {self.nint.check_array($ID.text)} {self.nint.array_access_start()} {self.nint.paren_open()} (expression {self.nint.array_access_expression()} | ':') {self.nint.paren_close()} ']' {self.nint.array_access_end()} // `:` = all the dimension // array access
+    : ID '[' {self.nint.check_array($ID.text)} {self.nint.array_access_start()} {self.nint.paren_open()} ((expression {self.nint.array_access_expression()} (',' {self.nint.paren_open()} expression {self.nint.array_access_expression()} {self.nint.paren_close()})* ) | ':') {self.nint.paren_close()} ']' {self.nint.array_access_end()} // `:` = all the dimension // array access
     ;
 exp
     : term {self.nint.check_addsub()} (bop=('+'|'-') {self.nint.add_operator($bop.text)} term {self.nint.check_addsub()})*
