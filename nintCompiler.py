@@ -55,6 +55,11 @@ class nintCompiler:
 		self._call_proc = None
 		self._func_returned = None # Check if the current function has returned something
 		self._param_k = None
+
+		# Array helpers
+		self._is_array = False
+		self._array_type = None
+
 		# Generate the global scope and insert it into the functions directory
 		# gscope = Function(GLOBAL, None, VOID)
 		# self.FunDir.insert(gscope) # TODO: are objects passed by reference here?
@@ -127,9 +132,19 @@ class nintCompiler:
 			raise Exception('Double declaration. {} has already been declared in this context.'.format(identifier))
 
 		dtype = mapType(type_str)
+
+		if self._is_array:
+			scalar_type = dtype
+			dtype = DType.VECTOR
+
 		address = current_scope.memory.next_address(dtype)
 
 		var = Variable(identifier, dtype, address)
+
+		if self._is_array:
+			var.scalar_type = scalar_type
+			self._is_array = False # Reset this value
+
 		current_scope.insert(var)
 
 
@@ -345,7 +360,7 @@ class nintCompiler:
 		debug("assignment_quad")
 		operator = self.OperatorStack.pop()
 
-		assert operator == Operator.ASSIGN
+		assert operator is Operator.ASSIGN
 
 		right_operand = self.OperandStack.pop()
 		right_type = self.TypeStack.pop()
@@ -358,6 +373,9 @@ class nintCompiler:
 		# TODO: these don't need to be *exactly* the same, they just need to be compatible
 		# example: float a = 10
 		assert right_type == left_type, "Type mismatch: assignment does not match"
+
+		if left_type is DType.VECTOR:
+			assert left_operand.scalar_type == right_operand.scalar_type, "Vector types do not match"
 
 		self.quads.append((operator.value, right_operand.address, None, left_operand.address))
 
@@ -564,13 +582,51 @@ class nintCompiler:
 
 		debug()
 
+
+	# Vectors
+	# --------------------------------------------
+	def array_declaration(self):
+		self._is_array = True
+
+	def array_start(self):
+		self.JumpStack.push(len(self.quads)) # Return here to store the length
+		var = self._TempStack.peek().next(DType.VECTOR)
+		var.dim1 = 0
+		self.OperandStack.push(var)
+		self.TypeStack.push(DType.VECTOR)
+		self.quads.append([Operator.VECTOR.value, None, None, None])
+
+	def array_elem(self):
+		elem_type = self.TypeStack.pop()
+		elem = self.OperandStack.pop()
+		array = self.OperandStack.peek()
+		if array.dim1 == 0:
+			# Set the type for this array if this is the first element
+			array.scalar_type = elem_type
+		else:
+			assert array.scalar_type == elem_type, "Type mismatch: Each element in the array must be of same type."
+		array.dim1 += 1
+		self.quads.append((Operator.PUSH.value, None, None, elem.address))
+
+	def array_end(self):
+		# Resolve size
+		vec_pos = self.JumpStack.pop()
+		array = self.OperandStack.peek()
+		self.quads[vec_pos][3] = array.dim1
+		self.quads.append((Operator.ENDVECTOR.value, None, None, array.address))
+
+
+
+	# Special functions
+	# --------------------------------------------
+
 	def print_start(self):
 		self._print = True
 	def print_end(self):
 		self._print = False
 	def print_expression(self):
 		debug("print_expression")
-		assert self._print
+		assert self._print # TODO: remove this
 		op = self.OperandStack.pop()
 		self.TypeStack.pop()
 		self.quads.append((Operator.PRINT.value, None, None, op.address))
@@ -582,4 +638,6 @@ class nintCompiler:
 
 	def paren_close(self):
 		self.OperatorStack.pop()
+
+
 

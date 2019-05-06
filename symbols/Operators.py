@@ -27,13 +27,18 @@ class Operator(Enum):
 	GOTO = 'goto'
 	GOTOF = 'gotoF'
 	GOTOV = 'gotoV'
-	# Functions:
 
+	# Functions:
 	ENDPROC = 'ENDPROC'
 	PARAM = 'PARAM'
 	ERA = 'ERA'
 	GOSUB = 'GOSUB'
 	RETURN = 'RETURN'
+
+	# Vectors
+	VECTOR = 'VECTOR'
+	PUSH = 'PUSH'
+	ENDVECTOR = 'ENDVECTOR'
 
 	PRINT = 'print'
 

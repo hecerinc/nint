@@ -67,13 +67,11 @@ expression returns [result]
 result = None
 }
     : primary
-    | expression '[' (expression | indexList | ':') ']' // `:` = all the dimension
+    | ID '[' (expression | ':')  ']' // `:` = all the dimension // array access
     | functionCall
     | pipeStmt
     | '-' expression // negative numbers
     | <assoc=right> '!' expression // negation TODO: assoc=right?
-    // | a=expression bop=('*'|'/') b=expression
-    // | a=expression bop=('+'|'-') b=expression
     | <assoc=right> expression '=' {self.nint.add_operator('=')} expression {self.nint.assignment_quad()} // assignment
     | expression bop=('<=' | '>=' | '>' | '<') {self.nint.add_operator($bop.text)} expression {self.nint.check_relop()}
     | expression bop=('==' | '!=') {self.nint.add_operator($bop.text)} expression {self.nint.check_eqop()}
@@ -118,9 +116,6 @@ forInit
     | expressionList
     ;
 
-indexList
-    : INT_LITERAL (',' indexList)?
-    ;
 
 
 /* Declaration */
@@ -132,7 +127,7 @@ initializer
     | expression
     ;
 vectorInitializer
-    : '[' (initializer (',' initializer)* )? ']'
+    : '[' {self.nint.array_start()} (expression {self.nint.array_elem()} (',' expression {self.nint.array_elem()})* )? ']' {self.nint.array_end()}
     ;
 
 /* Functions */
@@ -155,7 +150,7 @@ parameterDeclaration returns [pd]
 @init {
 pd = dict()
 }
-    : ts=typeSpecifier ID {$ctx.pd = {'type': $ts.text, 'id': $ID.text}}
+    : ts=typeSpecifier ID {$ctx.pd = {'type': $ts.text, 'id': $ID.text}} // TODO: can we pass arrays as parameters?
     ;
 
 /* TODO: how to handle null? */
@@ -166,7 +161,7 @@ typeSpecifier
     |   'float'
     |   'data.frame'
     |   'factor'
-    |   'bool') ('[' ']')? /* TODO: vectors of data frames? */
+    |   'bool') ('[' ']' {self.nint.array_declaration()})? /* TODO: vectors of data frames? */
     ;
 
 

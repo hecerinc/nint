@@ -113,15 +113,6 @@ class nintListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by nintParser#indexList.
-    def enterIndexList(self, ctx:nintParser.IndexListContext):
-        pass
-
-    # Exit a parse tree produced by nintParser#indexList.
-    def exitIndexList(self, ctx:nintParser.IndexListContext):
-        pass
-
-
     # Enter a parse tree produced by nintParser#declaration.
     def enterDeclaration(self, ctx:nintParser.DeclarationContext):
         pass

@@ -11,6 +11,7 @@ class DType(Enum):
 	FLOAT = auto()
 	ERROR = auto()
 	VOID = auto()
+	VECTOR = auto()
 
 
 _typemap = {
@@ -21,4 +22,6 @@ _typemap = {
 	'void': DType.VOID
 }
 def mapType(type_str: str):
+	if type_str.endswith('[]'):
+		type_str = type_str[:-2]
 	return _typemap.get(type_str, DType.ERROR)

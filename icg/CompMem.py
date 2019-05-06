@@ -18,7 +18,8 @@ class CompMem:
 		DType.BOOL: 2,
 		DType.STRING: 3,
 		DType.FLOAT: 4,
-		'Other': 5
+		DType.VECTOR: 5,
+		'Other': 6
 	}
 
 	CONST_TABLE = {
@@ -39,6 +40,7 @@ class CompMem:
 			DType.BOOL: 0,
 			DType.STRING: 0,
 			DType.FLOAT: 0,
+			DType.VECTOR: 0,
 			'Other': 0 # TODO: Find out what this is for
 		}
 
