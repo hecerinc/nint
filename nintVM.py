@@ -53,6 +53,13 @@ class nintVM:
 		self.CallStack = Stack() # Local memory
 		self.CallStack.push(self._GlobalMemory)
 
+		self.special_functions = {
+			'len': self._len,
+			'ls': self._ls,
+			'sum': self._sum,
+			'table': self._table,
+		}
+
 		# Instruction set
 		self.nintIS = {
 
@@ -340,6 +347,7 @@ class nintVM:
 		address = quad[3]
 		assert self._newstack is not None
 		self._newstack.set_value(address, param)
+		self._newstack.push_param(address)
 		debug()
 
 	def gosub(self, quad):
@@ -349,8 +357,12 @@ class nintVM:
 		sf = self._newstack
 		self.CallStack.push(sf)
 		sf.set_return_addr(self.ip)
+		func_name = quad[1]
+		if func_name in self.special_functions:
+			return self.special_functions[func_name]()
 		self.ip = int(quad[3])-1  # minus 1 because next() adds one
 		debug()
+
 
 	def endproc(self, quad):
 		'''Pop the current stack frame from the call stack and
@@ -433,6 +445,41 @@ class nintVM:
 		if isinstance(arg, bool):
 			arg = str(arg).lower()
 		print(arg)
+
+	def _len(self):
+		current_scope = self.CallStack.peek()
+		param = current_scope.param_list[0]
+		vector = self.get_value(param)
+		self.FunDir['len']['value'] = len(vector)
+		self._returns_value = True
+		self.endproc(None)
+
+	def _ls(self):
+		print("hello world!")
+		self.endproc(None)
+
+	def _sum(self):
+		current_scope = self.CallStack.peek()
+		param = current_scope.param_list[0]
+		vector = self.get_value(param)
+		self.FunDir['sum']['value'] = sum(vector)
+		self._returns_value = True
+		self.endproc(None)
+
+	def _table(self):
+		from collections import Counter
+		current_scope = self.CallStack.peek()
+		param = current_scope.param_list[0]
+		vector = self.get_value(param)
+		c = Counter(vector)
+		print("Value\tCount")
+		print("-----\t-----")
+		for item, count in c.items():
+			print(str(item) + "\t" + str(count))
+		self.endproc(None)
+
+
+
 
 
 

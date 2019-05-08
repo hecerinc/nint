@@ -59,10 +59,10 @@ class Function(Symbol):
 
 
 	@staticmethod
-	def make(name, return_type, param_list, scope):
-		func = Function(name, scope, return_type)
+	def make(name, return_type, param_list):
+		func = Function(name, None, return_type)
 		for param in param_list:
-			var = scope.memory.next(param)
+			var = func.varsTable.memory.next(param)
 			func.add_param(var)
 		return func
 

@@ -19,9 +19,8 @@ from icg.CompMem import CompMem as Memory, MemType
 import utils.utils as utils
 
 
-# TODO: probs should remove this from here
 GLOBAL = '__global'
-
+# CALL   	t4 <- result
 debug_mode = os.getenv('NINT_ENV', 'debug')
 
 def debug(*args):
@@ -32,15 +31,17 @@ def debug(*args):
 		print()
 
 def printable(item):
+	'''Print blank instead of None'''
 	return ' ' if item is None else str(item)
 
 
-no_check = ['serialize', 'functionDirectory', '__check_main']
+no_check = ['serialize', 'functionDirectory', '__check_main', '_init_special_functions']
 special_functions = ['print']
 
 class nintCompiler:
-	"""docstring for nintCompiler"""
+	"""Main class for the compiler"""
 	def __init__(self):
+		'''Set bookkeeping variables, initialize stacks and compiler memory'''
 		super().__init__()
 		self.OperatorStack = Stack()
 		self.OperandStack = Stack()
@@ -72,6 +73,8 @@ class nintCompiler:
 		self._TempStack = Stack()
 		self._TempStack.push(self._Temporal)
 
+		self._init_special_functions()
+
 		self.quads = []
 
 		# Add GOTO main
@@ -81,7 +84,6 @@ class nintCompiler:
 	def __getattribute__(self, attr):
 		method = object.__getattribute__(self, attr)
 		# if not method:
-		# 	raise Exception("Method %s not implemented" % attr)
 		if callable(method):
 			name = method.__code__.co_name
 			if name not in no_check and not name.startswith('procedure'):
@@ -89,9 +91,22 @@ class nintCompiler:
 		return method
 
 	def __check_main(self):
+		'''Check statements to find the "main" program (the first non-scoped) statement'''
 		if not self._found_main and self._current_func is None:
 			self._found_main = True
 			self.quads[0][3] = len(self.quads)
+
+	def _init_special_functions(self):
+		'''Add special functions to function directory'''
+		scope = self.GScope
+		funcs = [
+			Function.make('len', DType.INT, [DType.VECTOR]),
+			Function.make('ls', DType.VOID, []),
+			Function.make('sum', DType.INT, [DType.VECTOR]),
+			Function.make('table', DType.VOID, [DType.VECTOR]),
+		]
+		for func in funcs:
+			scope.insert(func)
 
 	def serialize(self, filename = "out.nint.bytecode"):
 		'''Serialize the quads and the quads into an intermediate
@@ -111,6 +126,7 @@ class nintCompiler:
 			pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
 
 	def functionDirectory(self):
+		'''Map the functions directory to only the stuff the VM needs'''
 		result = dict()
 		for func in self.GScope.functions:
 			result.update({func.name: func.size_map})
@@ -185,6 +201,7 @@ class nintCompiler:
 
 	# TODO: refactor the check_* functions
 	def check_relop(self):
+		'''Check relational operators'''
 		debug("check_relop")
 		top = self.OperatorStack.peek()
 		debug('top: {}'.format(top))
@@ -207,6 +224,7 @@ class nintCompiler:
 		debug()
 
 	def check_and(self):
+		'''Checks if the next operator in the stack is an and'''
 		debug("check_and")
 		top = self.OperatorStack.peek()
 		debug('top: {}'.format(top))
@@ -229,6 +247,7 @@ class nintCompiler:
 		debug()
 
 	def check_or(self):
+		'''Checks if the next operator in the stack is an or'''
 		debug("check_or")
 		top = self.OperatorStack.peek()
 		debug('top: {}'.format(top))
@@ -251,6 +270,7 @@ class nintCompiler:
 		debug()
 
 	def check_eqop(self):
+		'''Checks if the next operator in the stack is an equality (==) or (!=)'''
 		debug("check_eqop")
 		# TODO: implement this
 		top = self.OperatorStack.peek()
@@ -275,6 +295,7 @@ class nintCompiler:
 		debug()
 
 	def check_addsub(self):
+		'''Check if the next operator is a + or -'''
 		debug('check_addsub')
 		top = self.OperatorStack.peek()
 
@@ -299,6 +320,7 @@ class nintCompiler:
 		debug()
 
 	def check_multdiv(self):
+		'''Check if the next operator is a * or /'''
 		debug('check_multdiv')
 		top = self.OperatorStack.peek()
 
@@ -325,6 +347,7 @@ class nintCompiler:
 	# If-Else
 	# --------------------------------------------
 	def ifelse_start_jump(self):
+		'''Denote where the if block starts to generate the jumping GOTOF'''
 		debug("ifelse_start_jump")
 		expression_type = self.TypeStack.pop()
 		if expression_type != DType.BOOL:
@@ -335,6 +358,8 @@ class nintCompiler:
 		debug()
 
 	def ifelse_end_jump(self):
+		'''Fill in the pending condition jump for the IF statement
+		once we know where to jump'''
 		debug("ifelse_end_jump")
 		counter = len(self.quads) # TODO: change this
 		debug('counter: {}'.format(counter))
@@ -342,10 +367,12 @@ class nintCompiler:
 		debug()
 
 	def fill(self, pending_jump_pos, jump_location):
+		'''Fill a pending jump quad'''
 		debug("fill")
 		self.quads[pending_jump_pos][3] = jump_location # TODO: definitely make a class for this
 
 	def ifelse_start_else(self):
+		'''Store jumps for else statement in jump stack. Add GOTO quad'''
 		debug("ifelse_start_else")
 		debug("ADD ELSE QUAD GOTO")
 		self.quads.append([Operator.GOTO.value, None, None, None])
@@ -358,6 +385,7 @@ class nintCompiler:
 
 
 	def assignment_quad(self):
+		'''Generate the assignment quadruple making appropriate semantic checks'''
 		debug("assignment_quad")
 		operator = self.OperatorStack.pop()
 
@@ -377,7 +405,9 @@ class nintCompiler:
 
 		if left_type is DType.VECTOR:
 			assert left_operand.scalar_type == right_operand.scalar_type, "Vector types do not match"
-			# TODO: Also check the length if we have it
+			# Also check the length if we have it
+			if left_operand.dim1 is not None and right_operand.dim1 is not None:
+				assert left_operand.dim1 == right_operand.dim1, "Subset vectors must be of same size"
 
 		self.quads.append((operator.value, right_operand.address, None, left_operand.address))
 
@@ -387,12 +417,14 @@ class nintCompiler:
 	# While
 	# --------------------------------------------
 	def while_condition_start(self):
+		'''Store where the while condition starts to jump for reevaluation'''
 		debug("while_condition_start")
 		counter = len(self.quads) # TODO: counter
 		self.JumpStack.push(counter)
 
 
 	def while_block_start(self):
+		'''Store where the while block starts and generate the GOTOF for the condition'''
 		debug("while_block_start")
 		expression_type = self.TypeStack.pop()
 		if expression_type != DType.BOOL:
@@ -405,6 +437,7 @@ class nintCompiler:
 
 
 	def while_end(self):
+		'''Once we know where the while ends, GOTO the start of condition'''
 		debug("while_end")
 
 		pending_while_end_jump = self.JumpStack.pop()
@@ -440,7 +473,7 @@ class nintCompiler:
 			self.procedure_add_param(param['type'], param['id'])
 
 	def procedure_add_param(self, type_str: str, pname: str):
-		'''Call function.add_param()'''
+		'''Call function.add_param() to add the appropriate params to the function'''
 		debug('procedure_add_param')
 
 		assert self._current_func is not None
@@ -588,9 +621,12 @@ class nintCompiler:
 	# Vectors
 	# --------------------------------------------
 	def array_declaration(self):
+		'''Helper method for generating array related quads'''
 		self._is_array = True
 
 	def array_start(self):
+		'''Mark the beginning of an array definition. Add it to varstable and set appropriate types.
+		Generate a VECTOR quad. Add this quad to the jumpstack to fill the size of the vector'''
 		self.JumpStack.push(len(self.quads)) # Return here to store the length
 		var = self._TempStack.peek().next(DType.VECTOR)
 		var.dim1 = 0
@@ -599,6 +635,8 @@ class nintCompiler:
 		self.quads.append([Operator.VECTOR.value, None, None, None])
 
 	def array_elem(self):
+		'''Add an array element to the current array. Check for consistent types.
+		Generate a PUSH quad'''
 		elem_type = self.TypeStack.pop()
 		elem = self.OperandStack.pop()
 		array = self.OperandStack.peek()
@@ -611,6 +649,8 @@ class nintCompiler:
 		self.quads.append((Operator.PUSH.value, None, None, elem.address))
 
 	def array_end(self):
+		'''Get the full size of the array definition and generate an ENDVECTOR.
+		Fill the corresponding VECTOR quad with the full size'''
 		# Resolve size
 		vec_pos = self.JumpStack.pop()
 		array = self.OperandStack.peek()
@@ -619,6 +659,7 @@ class nintCompiler:
 
 	# Array access
 	def check_array(self, array_name: str):
+		'''Start an array subsetting or access. Checks that the name exists and it is an array'''
 		current_scope = self.ScopeStack.peek()
 		array = current_scope.get(array_name)
 		assert array is not None, "Array {} has not been declared."
@@ -626,10 +667,13 @@ class nintCompiler:
 		self._array_access = array
 
 	def array_access_start(self):
+		'''Generate a SUBSET quad to start subsetting the array.'''
 		array = self._array_access
 		self.quads.append((Operator.SUBSET.value, None, None, array.address))
 
 	def array_access_expression(self):
+		'''Add the current expression as an element of the list subsetting the current array.
+		Check that the expression is of type INT. Generates a DIM quad'''
 		pos = self.OperandStack.pop()
 		pos_type = self.TypeStack.pop()
 		assert pos_type is DType.INT, "Vector subset expression must be an integer."
@@ -638,6 +682,9 @@ class nintCompiler:
 		self.quads.append((Operator.DIM.value, None, None, pos.address))
 
 	def array_access_end(self):
+		'''End the array subsetting. Check whether subsetting multiple or 1 item and set the
+		return type accordingly. Generate a pointer address to use when accesing the subsetted elements.
+		Store this pointer address in an ENDSUBSET quad.'''
 		array = self._array_access
 		result_is_scalar = self._array_access_dim == 1
 
@@ -648,6 +695,7 @@ class nintCompiler:
 
 		if not result_is_scalar:
 			result.scalar_type = array.scalar_type
+			result.dim1 = self._array_access_dim
 
 		self.OperandStack.push(result)
 		self.TypeStack.push(dtype)
@@ -661,12 +709,12 @@ class nintCompiler:
 
 	# Special functions
 	# --------------------------------------------
-
 	def print_start(self):
 		self._print = True
 	def print_end(self):
 		self._print = False
 	def print_expression(self):
+		'''Generate a print quad'''
 		debug("print_expression")
 		assert self._print # TODO: remove this
 		op = self.OperandStack.pop()
@@ -676,9 +724,11 @@ class nintCompiler:
 
 
 	def paren_open(self):
+		'''Add a fake bottom the operator stack'''
 		self.OperatorStack.push(Operator.FAKE)
 
 	def paren_close(self):
+		'''Pop the fake bottom from the operator stack'''
 		self.OperatorStack.pop()
 
 

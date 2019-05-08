@@ -6,8 +6,10 @@ a = [1, 2, 3, 4, 5];
 // print(a[4]);
 // print(a);
 // print(a[1]);
-print(a[2,3]); // Get indices 2 and 3
+// print(a[2,3]); // Get indices 2 and 3
 print(a);
-a[2,3] = [10, 10]; // set indices 2 and 3
+// a[2,3] = [10, 10]; // set indices 2 and 3
 a[2,3] = [10, 10, 15]; // TODO: this should break
 print(a);
+
+// a[2,3] = ['helo', 'world'];
