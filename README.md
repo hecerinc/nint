@@ -9,7 +9,7 @@ To create a fast, frictionless, natural interface programming language for data 
 
 ## 3. Language main objective, including category (area)
 
-**nint**'s main objective is to improves the data manipulation process by providing a frictionless interface that significantly simplifies the developer or statistician's life and reduces the time spent in the process of data wrangling, and performing common vectorised operations and statistical analysis. The idea is to have data frames (two-dimensional collections of data) as first-class citizens in the languange, and providing a piping system to manipulate and transform them.
+**nint**'s main objective is to improve the data manipulation process by providing a frictionless interface that significantly simplifies the developer or statistician's life and reduces the time spent in the process of data wrangling, and performing common vectorised operations and statistical analysis. The idea is to have data frames (two-dimensional collections of data) as first-class citizens in the language, and providing a piping system to manipulate and transform them.
 
 ## 4. Language requirements
 
@@ -103,13 +103,13 @@ A particular feature of the language is that it allows for piping data frames. T
 | ------------------ | ----------- |
 | `str(data.frame) :: void` | Shows a quick description of the data: the column names, types, and the first 6 elements |
 | `cats(factor) :: string[]` | Shows the category (unique entries) for a factor |
-| `read.table(string, delim : string, headers : bool) :: data.frame` | Reads a table into from a filename. File is a text file with columns separated by `delim` and `headers` specifies whether to read the first line as column names.s |
+| `read.table(string, delim : string, headers : bool) :: data.frame` | Reads a table into from a filename. File is a text file with columns separated by `delim` and `headers` specifies whether to read the first line as column names |
 | `write.table(data.frame, filename : string, delim : string) :: bool` | Writes a data frame to a text file, with columns separated by `delim`. |
 | `colnames(data.frame) :: string[]` | Returns the colum names of the data frame |
 | `dim(data.frame) :: int[2]` | Returns the dimensions (rows and columns) of a data frame |
 | `summary(data.frame) :: void` | Returns a basic statistical summary for numerical columns in the data frame. |
 | `sum(int [] \| float[] \| bool[]) :: int \| float` | Returns the sum of a numeric (or parseable) vector |
-| `map(vector, function) :: <type of vector>` | Applies a function succesively to all elements of a vector and returns the transformed vector |
+| `map(vector, function) :: <type of vector>` | Applies a function successively to all elements of a vector and returns the transformed vector |
 | `len(vector) :: int` | Returns the length of a vector |
 | `ls(void) :: string[]` | Returns the variable names in the current scope |
 | `clear(void) :: void` | Clears the variable table for the current scope |
