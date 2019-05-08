@@ -269,7 +269,12 @@ class nintVM:
 		debug(quad)
 		left_operand = self.get_value(quad[1])
 		right_operand = self.get_value(quad[2])
-		result = left_operand + right_operand
+		if isinstance(left_operand, list):
+			result = [x+right_operand for x in left_operand]
+		elif isinstance(right_operand, list):
+			result = [x+left_operand for x in right_operand]
+		else:
+			result = left_operand + right_operand
 		self.set_value(quad[3], result)
 		debug()
 
@@ -277,7 +282,12 @@ class nintVM:
 		'''Subtract two operands'''
 		left_operand = self.get_value(quad[1])
 		right_operand = self.get_value(quad[2])
-		result = left_operand - right_operand
+		if isinstance(left_operand, list):
+			result = [x-right_operand for x in left_operand]
+		elif isinstance(right_operand, list):
+			result = [left_operand-x for x in right_operand]
+		else:
+			result = left_operand - right_operand
 		self.set_value(quad[3], result)
 
 
@@ -285,7 +295,12 @@ class nintVM:
 		'''Multiply two operands'''
 		left_operand = self.get_value(quad[1])
 		right_operand = self.get_value(quad[2])
-		result = left_operand * right_operand
+		if isinstance(left_operand, list):
+			result = [x*right_operand for x in left_operand]
+		elif isinstance(right_operand, list):
+			result = [x*left_operand for x in right_operand]
+		else:
+			result = left_operand * right_operand
 		self.set_value(quad[3], result)
 
 	def div(self, quad):
@@ -294,7 +309,13 @@ class nintVM:
 		right_operand = self.get_value(quad[2])
 		if right_operand == 0:
 			raise Exception("Runtime Exception: Division by 0.")
-		result = left_operand / right_operand
+		if isinstance(left_operand, list):
+			result = [x/right_operand for x in left_operand]
+		elif isinstance(right_operand, list):
+			assert 0 not in right_operand, "Runtime Exception: Division by 0"
+			result = [left_operand/x for x in right_operand]
+		else:
+			result = left_operand / right_operand
 		self.set_value(quad[3], result)
 
 

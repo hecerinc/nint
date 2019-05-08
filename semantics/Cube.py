@@ -98,8 +98,22 @@ class SemanticCube:
 
 
 			# BOOL
+			# ---------------------------------------------------------------
 			(Operator.AND, DType.BOOL, DType.BOOL): DType.BOOL,
 			(Operator.OR, DType.BOOL, DType.BOOL): DType.BOOL,
+
+			# VECTORS
+			# ---------------------------------------------------------------
+			# TODO: we need to check the scalar type of the vector as well
+			(Operator.MULT, DType.VECTOR, DType.INT): DType.VECTOR,
+			(Operator.MULT, DType.INT, DType.VECTOR): DType.VECTOR,
+			(Operator.DIV, DType.VECTOR, DType.INT): DType.VECTOR,
+			(Operator.DIV, DType.INT, DType.VECTOR): DType.VECTOR,
+			(Operator.ADD, DType.VECTOR, DType.INT): DType.VECTOR,
+			(Operator.ADD, DType.INT, DType.VECTOR): DType.VECTOR,
+			(Operator.SUB, DType.VECTOR, DType.INT): DType.VECTOR,
+			(Operator.SUB, DType.INT, DType.VECTOR): DType.VECTOR,
+
 
 		}
 
