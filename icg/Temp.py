@@ -22,4 +22,6 @@ class Temp(Memory):
 		'''Generate a new temp variable of type dtype'''
 		self._tmp_counter += 1
 		address = self.next_address(dtype)
-		return Variable('t{}'.format(self._tmp_counter), dtype, address)
+		var =  Variable('t{}'.format(self._tmp_counter), dtype, address)
+		var.has_value = True
+		return var

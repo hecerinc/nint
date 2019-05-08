@@ -17,6 +17,7 @@ class Variable(Symbol):
 		self._scalar_type = None
 		self._dim1 = None
 		self._pointer_type = None
+		self._has_value = False
 
 	@property
 	def address(self):
@@ -50,6 +51,14 @@ class Variable(Symbol):
 	@property
 	def pointer_type(self):
 		return self._pointer_type
+
+	@property
+	def has_value(self):
+		return self._has_value
+
+	@has_value.setter
+	def has_value(self, hasvalue):
+		self._has_value = hasvalue
 
 	@pointer_type.setter
 	def pointer_type(self, pt):

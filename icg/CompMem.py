@@ -67,7 +67,9 @@ class CompMem:
 		# TODO: if we arleady have this here, what is 'Temp.py' used for?
 		self._tmpcount += 1
 		addr = self.next_address(dtype)
-		return Variable('t{}'.format(self._tmpcount), dtype, addr)
+		var =  Variable('t{}'.format(self._tmpcount), dtype, addr)
+		var.has_value = True
+		return var
 
 
 	@staticmethod
@@ -84,6 +86,7 @@ class CompMem:
 			memtype_id = MemType.CONST.value
 			full_address = "{}{}{}".format(memtype_id, datatype_id, address)
 			var = Variable(value, dtype, full_address, value)
+			var.has_value = True
 			const_bucket.update({value: var})
 
 		return var

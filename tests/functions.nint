@@ -4,7 +4,7 @@
 
 // uno(2, 3);
 
-function sum(int a, int a) :: int {
+function suma(int a, int b) :: int {
 	return a + b;
 	// if(a > b) {
 	// 	return a + b;
@@ -16,4 +16,5 @@ function sum(int a, int a) :: int {
 }
 
 int a = 20;
-int c = a*sum(2, 2);
+int c = a*suma(2, 2);
+print(c);

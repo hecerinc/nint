@@ -7,7 +7,7 @@ import pickle
 # Hide traceback from exceptions:
 # sys.tracebacklimit = None
 
-from utils.Stack import Stack
+from utils.Stack import Stack, OperandStack as OStack
 from icg.Temp import Temp
 from symbols.Operators import Operator, RELOPS
 from symbols.Types import DType, mapType
@@ -44,7 +44,7 @@ class nintCompiler:
 		'''Set bookkeeping variables, initialize stacks and compiler memory'''
 		super().__init__()
 		self.OperatorStack = Stack()
-		self.OperandStack = Stack()
+		self.OperandStack = OStack()
 		self.TypeStack = Stack()
 		self.JumpStack = Stack()
 		self.GScope = Env(None, MemType.GLOBAL) # Global env?
@@ -393,7 +393,7 @@ class nintCompiler:
 
 		right_operand = self.OperandStack.pop()
 		right_type = self.TypeStack.pop()
-		left_operand = self.OperandStack.pop()
+		left_operand = self.OperandStack.pop(True)
 		left_type = self.TypeStack.pop()
 
 		debug("<{}> = <{}>".format(left_type, right_type))
@@ -409,6 +409,7 @@ class nintCompiler:
 			if left_operand.dim1 is not None and right_operand.dim1 is not None:
 				assert left_operand.dim1 == right_operand.dim1, "Subset vectors must be of same size"
 
+		left_operand.has_value = True
 		self.quads.append((operator.value, right_operand.address, None, left_operand.address))
 
 		debug()
@@ -486,6 +487,7 @@ class nintCompiler:
 		data_type = mapType(type_str)
 		address = current_scope.memory.next_address(data_type)
 		var = Variable(pname, data_type, address)
+		var.has_value = True
 		self._current_func.add_param(var)
 
 
