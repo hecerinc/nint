@@ -6,7 +6,7 @@ from grammar.nintParser import nintParser
 
 
 if len(sys.argv) < 2:
-	print("Usage: python driver.py <test_input_file.txt>")
+	print("Usage: nint <test_input_file.nint>")
 	sys.exit()
 
 def main(argv):

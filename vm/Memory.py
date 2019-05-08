@@ -46,7 +46,6 @@ class Memory:
 	def __init__(self, var_count: dict):
 		super().__init__()
 
-		# TODO: get size of each bucket as parameter
 		self._mem = {
 			DType.INT: [None]*var_count[DType.INT],
 			DType.BOOL: [None]*var_count[DType.BOOL],
@@ -57,6 +56,7 @@ class Memory:
 		}
 
 	def _parse_address(self, address):
+		'''Helper method to parse the addresses'''
 		dtype_indicator = int(address[1])
 		mapped_dtype = DType(dtype_indicator)
 		mem_bucket = self._mem[mapped_dtype]
@@ -64,6 +64,7 @@ class Memory:
 		return (mem_bucket, real_address)
 
 	def _set_pointer_value(self, pointer, value):
+		'''Set a value of type pointer( we have to dereference it first'''
 		array_address = pointer[0]
 		subset = pointer[1]
 		bucket, real_address = self._parse_address(array_address)
@@ -76,6 +77,7 @@ class Memory:
 				bucket[real_address][index] = value[i]
 
 	def set_value(self, address, value, pointer = None):
+		'''Set a value of an address'''
 		if pointer is not None:
 			return self._set_pointer_value(pointer, value)
 		mem_bucket, real_address = self._parse_address(address)

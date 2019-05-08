@@ -28,6 +28,10 @@ class Function(Symbol):
 	def start_pos(self):
 		return self._start_pos
 
+	@start_pos.setter
+	def start_pos(self, pos):
+		self._start_pos = pos
+
 	@property
 	def param_list(self):
 		''''A list of parameter types in the order in which they were defined'''
@@ -37,12 +41,6 @@ class Function(Symbol):
 	@property
 	def is_void(self):
 		return self.dtype == DType.VOID
-
-
-	@start_pos.setter
-	def start_pos(self, pos):
-		self._start_pos = pos
-
 
 
 	def update_type(self, dtype):
@@ -58,6 +56,16 @@ class Function(Symbol):
 		self._varsTable.insert(variable)
 		self._param_list.append(variable)
 		self._temp_counter += 1
+
+
+	@staticmethod
+	def make(name, return_type, param_list, scope):
+		func = Function(name, scope, return_type)
+		for param in param_list:
+			var = scope.memory.next(param)
+			func.add_param(var)
+		return func
+
 
 
 

@@ -15,8 +15,9 @@ debug_mode = os.getenv('NINT_ENV', 'debug')
 
 
 class nintVM:
-	"""docstring for nintVM"""
+	"""Main class for the nint virtual machine"""
 	def __init__(self, filename: str):
+		'''Init all the bookkeeping necessary and store the instruction set'''
 		super().__init__()
 		self.ip = 0 # Instruction pointer
 		self.quads = []
@@ -36,6 +37,7 @@ class nintVM:
 		self.load_data(filename)
 		self._total_quads = len(self.quads)
 
+		# Check that the bytecode has the info we need
 		assert self._memcount_global != 0 and self._memcount_temp != 0, "No data read for global or temp counts from bytecode"
 
 		if debug_mode == 'debug':
@@ -45,6 +47,7 @@ class nintVM:
 			debug()
 			debug()
 
+		# Intialize memory
 		self.Temp = Memory(self._memcount_temp)
 		self._GlobalMemory = Memory(self._memcount_global)
 		self.CallStack = Stack() # Local memory
@@ -93,8 +96,6 @@ class nintVM:
 			Operator.SUBSET: self.subset,
 			Operator.ENDSUBSET: self.endsubset,
 
-
-
 			Operator.PRINT: self._print
 		}
 
@@ -119,6 +120,7 @@ class nintVM:
 			quad = self.next()
 
 	def next(self):
+		'''Get the next quadruple'''
 		self.ip += 1
 		if self.ip < self._total_quads:
 			return self.quads[self.ip]
@@ -128,6 +130,8 @@ class nintVM:
 
 
 	def set_value(self, address: str, value, check_pointer = True):
+		'''Set the value of an address. Checks scope and calls set_value on the appropriate
+		Memory instance.'''
 		pointer = None
 		if check_pointer and is_pointer(address):
 			pointer = self.get_value(address, False)
@@ -139,13 +143,16 @@ class nintVM:
 			self.CallStack.peek().set_value(address, value, pointer)
 
 	def get_value(self, address, check_pointer = True):
+		'''Get value of an address. Check first if this is a pointer
+		and whether we should dereference it'''
 		value = self._get_value(address)
 		if check_pointer and is_pointer(address):
 			value = self.dereference_pointer(value)
 		return value
 
 	def _get_value(self, address):
-
+		'''The actual function that checks which instance of memory to
+		retrieve the value from'''
 		if is_constant(address):
 			debug(address, "is_constant")
 			return self.ConstTable[address]
@@ -157,22 +164,24 @@ class nintVM:
 		# return self.mem.get_val(address)
 
 	def dereference_pointer(self, pointer):
+		'''Dereferences an address of type pointer. Used for array subsetting.'''
 		array_addr = pointer[0]
 		subset = pointer[1]
 		array = self._get_value(array_addr)
 		result = []
 		for index in subset:
 			result.append(array[index])
-		if len(result) == 1:
-			return result[0]
-		return result
+		assert len(result) > 0, "No elements indexed"
+		return result[0] if len(result) == 1 else result
 
 	# Operation functions
 	# ---------------------------------------------------------------
 	def assign(self, quad):
+		'''Assign a value to an address'''
 		debug("assign")
 		debug(quad)
 		if self._returns_value:
+			# If this is a function that returned, store the return value in the function directory
 			# Second param is function
 			self._returns_value = False
 			func = self.FunDir[quad[1]]
@@ -189,6 +198,7 @@ class nintVM:
 	# Relational operators
 	# -------------------------------------------------
 	def equals(self, quad):
+		'''Check equality.'''
 		debug("equals")
 		left_operand = self.get_value(quad[1])
 		right_operand = self.get_value(quad[2])
@@ -196,26 +206,31 @@ class nintVM:
 		self.set_value(quad[3], result)
 		debug()
 	def neq(self, quad):
+		'''Check that a value not equals'''
 		left_operand = self.get_value(quad[1])
 		right_operand = self.get_value(quad[2])
 		result = left_operand != right_operand
 		self.set_value(quad[3], result)
 	def gt(self, quad):
+		'''Check greater than >'''
 		left_operand = self.get_value(quad[1])
 		right_operand = self.get_value(quad[2])
 		result = left_operand > right_operand
 		self.set_value(quad[3], result)
 	def gte(self, quad):
+		'''Check greater than or equal to >='''
 		left_operand = self.get_value(quad[1])
 		right_operand = self.get_value(quad[2])
 		result = left_operand >= right_operand
 		self.set_value(quad[3], result)
 	def lt(self, quad):
+		'''Check less than >'''
 		left_operand = self.get_value(quad[1])
 		right_operand = self.get_value(quad[2])
 		result = left_operand < right_operand
 		self.set_value(quad[3], result)
 	def lte(self, quad):
+		'''Check less than or equal to >='''
 		left_operand = self.get_value(quad[1])
 		right_operand = self.get_value(quad[2])
 		result = left_operand <= right_operand
@@ -225,12 +240,14 @@ class nintVM:
 	# Boolean operators
 	# -------------------------------------------------
 	def bool_and(self, quad):
+		'''Perform a boolean &&'''
 		left_operand = self.get_value(quad[1])
 		right_operand = self.get_value(quad[2])
 		result = left_operand and right_operand
 		self.set_value(quad[3], result)
 
 	def bool_or(self, quad):
+		'''Perform a boolean ||'''
 		left_operand = self.get_value(quad[1])
 		right_operand = self.get_value(quad[2])
 		result = left_operand or right_operand
@@ -240,6 +257,7 @@ class nintVM:
 	# -------------------------------------------------
 
 	def add(self, quad):
+		'''Add two operands'''
 		debug("add")
 		debug(quad)
 		left_operand = self.get_value(quad[1])
@@ -249,18 +267,22 @@ class nintVM:
 		debug()
 
 	def sub(self, quad):
+		'''Subtract two operands'''
 		left_operand = self.get_value(quad[1])
 		right_operand = self.get_value(quad[2])
 		result = left_operand - right_operand
 		self.set_value(quad[3], result)
 
+
 	def mult(self, quad):
+		'''Multiply two operands'''
 		left_operand = self.get_value(quad[1])
 		right_operand = self.get_value(quad[2])
 		result = left_operand * right_operand
 		self.set_value(quad[3], result)
 
 	def div(self, quad):
+		'''Divide two operands. Check division by 0.'''
 		left_operand = self.get_value(quad[1])
 		right_operand = self.get_value(quad[2])
 		if right_operand == 0:
@@ -273,21 +295,26 @@ class nintVM:
 	# -------------------------------------------------
 
 	def goto(self, quad):
+		'''Jump to quad index in GOTO expression'''
 		quad_addr = int(quad[3])
 		self.ip = quad_addr - 1
 
 	def gotoF(self, quad):
+		'''Jump to quad index if expression is false'''
 		expr_result = self.get_value(quad[1])
 		if not expr_result:
 			self.ip = int(quad[3]) -1
 
 	def gotoV(self, quad):
+		'''Jump to quad index if expression is true'''
 		raise Exception('Not implemented')
 
 	# Functions
 	# ---------------------------------------------------------------
 
 	def expand_active_record(self, quad):
+		'''Expand the active record. Create the memory required for this
+		function in its own StackFrame. Add it to the callstack.'''
 		debug("ERA")
 		func_name = quad[1]
 
@@ -304,6 +331,8 @@ class nintVM:
 		debug()
 
 	def param(self, quad):
+		'''Copy a value from a memory address to the current
+		stack frame as a local variable (param)'''
 		debug('param')
 		current_scope = self.CallStack.peek()
 		assert current_scope is not None, "No callstack"
@@ -314,6 +343,8 @@ class nintVM:
 		debug()
 
 	def gosub(self, quad):
+		'''Move instruction pointer to wherever the function starts.
+		Store the return address.'''
 		debug('gosub')
 		sf = self._newstack
 		self.CallStack.push(sf)
@@ -322,6 +353,9 @@ class nintVM:
 		debug()
 
 	def endproc(self, quad):
+		'''Pop the current stack frame from the call stack and
+		release the memory. Point instruction pointer to wherever it was
+		before the function call'''
 		debug('endproc')
 		current_scope = self.CallStack.pop()
 		self.ip = current_scope.return_addr
@@ -330,6 +364,7 @@ class nintVM:
 		debug()
 
 	def return_proc(self, quad):
+		'''If funciton returned, store the value in the function directory. Call endproc.'''
 		is_empty_return = quad[1] is None
 		if is_empty_return:
 			return self.endproc(quad)
@@ -344,36 +379,44 @@ class nintVM:
 	# Vectors
 	# ---------------------------------------------------------------
 	def vector(self, quad):
+		'''Allocate memory for a new vector of a specified size'''
 		size = int(quad[3])
 		self._current_array = [None]*size
 		self._current_array_length = 0
 
 	def push_elem(self, quad):
+		'''Push an element to the current vector'''
 		value = self.get_value(quad[3])
 		self._current_array[self._current_array_length] = value
 		self._current_array_length += 1
 
 	def endvector(self, quad):
+		'''Copy the currently building vector into its corresponding memory address'''
 		array = self._current_array
 		self.set_value(quad[3], array)
 		self._current_array = None
 
 	def subset(self, quad):
+		'''Start an array subsetting. Get the array from memory.'''
 		self._current_array = self.get_value(quad[3])
 		self._current_array_address = quad[3]
 
 	def dim(self, quad):
+		'''Add an subsetter index in dimension i (read from quad). Check that
+		each subset index is within the range of the current address length'''
+		# TODO: actually read the dimension to support data frames
 		array = self._current_array
 		subset_value = self.get_value(quad[3])
 		# Validate it's within bounds
 		assert subset_value >= 0 and subset_value < len(array), "Out of bounds exception: index is out of bounds."
 		# 	self._subset_result = []
-		if self._subset is None:
+		if self._subset is None: # TODO: what is this?
 			self._subset = []
 		self._subset.append(subset_value)
 		# self._subset_result.append(array[subset_value])
 
 	def endsubset(self, quad):
+		'''End the subset and store the subset result as a pointer in the designated memory'''
 		result = (self._current_array_address, self._subset)
 		# if len(result) == 1:
 		# 	result = result[0]
@@ -385,6 +428,7 @@ class nintVM:
 	# Special functions
 	# ---------------------------------------------------------------
 	def _print(self, quad):
+		'''Print expression'''
 		arg = self.get_value(quad[3])
 		if isinstance(arg, bool):
 			arg = str(arg).lower()
@@ -396,7 +440,7 @@ class nintVM:
 def main(argv):
 	'''Load the bytecode and initialise the VM'''
 	if len(argv) < 2:
-		print("Usage: python nintVM.py <file>.nint.bytecode")
+		print("Usage: nintVM <file>.nint.bytecode")
 		sys.exit()
 
 	vm = nintVM(argv[1])

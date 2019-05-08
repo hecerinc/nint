@@ -10,7 +10,7 @@ from symbols.Variable import Variable
 MemType = Enum('MEMTYPE', 'GLOBAL LOCAL CONST TEMP')
 
 class CompMem:
-	"""docstring for CompMem"""
+	"""Memory management for compilation"""
 
 	# TODO: maybe we don't need this anymore now that the DType enum is int-valued
 	VAR_TYPE_IDS = {
@@ -20,7 +20,6 @@ class CompMem:
 		DType.FLOAT: 4,
 		DType.VECTOR: 5,
 		DType.POINTER: 6,
-		'Other': 6
 	}
 
 	CONST_TABLE = {
@@ -36,6 +35,7 @@ class CompMem:
 		self._memtype = memType
 		self._tmpcount = 0
 
+		'''Counters for each data type. Used in VM'''
 		self._counters = {
 			DType.INT: 0,
 			DType.BOOL: 0,
@@ -43,17 +43,18 @@ class CompMem:
 			DType.FLOAT: 0,
 			DType.VECTOR: 0,
 			DType.POINTER: 0,
-			'Other': 0 # TODO: Find out what this is for
 		}
 
 	def next_address(self, dtype: DType) -> str:
+		'''Get the next available address for the data type'''
 		# Check what type of memory this is (global, temporal, constant, local)
 		memtype_id = self._memtype.value
 
-		# Check the data type
-		datatype_id = CompMem.VAR_TYPE_IDS.get(dtype, CompMem.VAR_TYPE_IDS['Other'])
 
 		assert dtype in self._counters
+
+		# Check the data type
+		datatype_id = CompMem.VAR_TYPE_IDS[dtype]
 
 		self._counters[dtype] += 1
 		address = self._counters[dtype]
@@ -79,7 +80,7 @@ class CompMem:
 			# insert it into the table
 
 			address = len(const_bucket) + 1
-			datatype_id = CompMem.VAR_TYPE_IDS.get(dtype, CompMem.VAR_TYPE_IDS['Other'])
+			datatype_id = CompMem.VAR_TYPE_IDS[dtype]
 			memtype_id = MemType.CONST.value
 			full_address = "{}{}{}".format(memtype_id, datatype_id, address)
 			var = Variable(value, dtype, full_address, value)
