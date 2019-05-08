@@ -181,12 +181,14 @@ class nintCompiler:
 
 		debug()
 
-	def add_constant(self, token, dtype: DType):
+	def add_constant(self, token, dtype: DType, negative = False):
 		'''Adds a constant to the operand stack'''
 		debug("add_constant")
 		debug("Operand.push({})".format(token))
 		debug("TypeStack.push({})".format(dtype))
 		debug()
+		if negative:
+			token = -1*int(token)
 		self.OperandStack.push(Memory.constant(dtype, token)) # TODO: should we parse?
 		self.TypeStack.push(dtype)
 		debug()

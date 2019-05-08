@@ -103,8 +103,8 @@ expressionList
 
 
 literal
-    : INT_LITERAL {self.nint.add_constant($INT_LITERAL.text, DType.INT)}
-    | FLOAT_LITERAL {self.nint.add_constant($FLOAT_LITERAL.text, DType.FLOAT)}
+    : (neg='-')? INT_LITERAL {self.nint.add_constant($INT_LITERAL.text, DType.INT, $neg is not None)}
+    | (neg='-')? FLOAT_LITERAL {self.nint.add_constant($FLOAT_LITERAL.text, DType.FLOAT, $neg is not None)}
     | STRING_LITERAL {self.nint.add_constant($STRING_LITERAL.text, DType.STRING)}
     | BOOL_LITERAL {self.nint.add_constant($BOOL_LITERAL.text, DType.BOOL)}
     | RANGE

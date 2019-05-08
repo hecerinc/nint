@@ -1,15 +1,13 @@
 # nint
 
-1. Cover
-
 ## 2. Vision of the project
 
 To create a fast, frictionless, natural interface programming language for data manipulation, and vectorised operations.
 
 
-## 3. Language main objective, including category (area)
+## 3. Language main objective
 
-**nint**'s main objective is to improve the data manipulation process by providing a frictionless interface that significantly simplifies the developer or statistician's life and reduces the time spent in the process of data wrangling, and performing common vectorised operations and statistical analysis. The idea is to have data frames (two-dimensional collections of data) as first-class citizens in the language, and providing a piping system to manipulate and transform them.
+**nint**'s main objective is to improve the data manipulation process by providing a frictionless interface that significantly simplifies the developer or statistician's life and reduces the time spent in the process of data wrangling, and performing common vectorised operations and statistical analysis. The idea is to have data frames (two-dimensional collections of data) as first-class citizens in the language, and providing a piping system to manipulate and transform them. It is meant to be a small subset of R.
 
 ## 4. Language requirements
 
@@ -80,7 +78,7 @@ To create a fast, frictionless, natural interface programming language for data 
 
 ### 4.2 Syntax diagrams for all the structures in your language
 
-
+See Apendix 1.
 
 ### 4.3 Main semantic characteristics
 
@@ -102,7 +100,6 @@ A particular feature of the language is that it allows for piping data frames. T
 | Function signature | Description |
 | ------------------ | ----------- |
 | `str(data.frame) :: void` | Shows a quick description of the data: the column names, types, and the first 6 elements |
-| `cats(factor) :: string[]` | Shows the category (unique entries) for a factor |
 | `read.table(string, delim : string, headers : bool) :: data.frame` | Reads a table into from a filename. File is a text file with columns separated by `delim` and `headers` specifies whether to read the first line as column names |
 | `write.table(data.frame, filename : string, delim : string) :: bool` | Writes a data frame to a text file, with columns separated by `delim`. |
 | `colnames(data.frame) :: string[]` | Returns the colum names of the data frame |
@@ -125,7 +122,6 @@ A particular feature of the language is that it allows for piping data frames. T
 - floats: floating point numbers
 - integers: integers
 - strings: collection of arbitrary characters
-- factors: one-dimensional structure for storing categorical data
 - data frames: collection of vectors into a 2D structure with rows and columns with attributes
 - vectors: one-dimensional collection of homogenous elements
 - booleans: `true` or `false`
@@ -135,7 +131,5 @@ A particular feature of the language is that it allows for piping data frames. T
 ## 5. Tech stack
 
 The project will be developed in Python, using antlr as a parser generator and built on a machine running Windows 10.
-
-
 
 

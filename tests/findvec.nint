@@ -1,0 +1,12 @@
+function find(int[] a, int value) :: int {
+	int i = 0;
+	while(i < len(a)) {
+		if(a[i] == value) {
+			return i;
+		}
+		i = i +1;
+	}
+	return -1;
+}
+int[] a = [1,2,3];
+print(find(a, 9));
