@@ -137,7 +137,7 @@ vectorInitializer
 /* Functions */
 
 functionDeclaration
-    : 'function' ID {self.nint.procedure_start($ID.text)} '(' (plist=parameterList {self.nint.procedure_add_params($plist.ctx.plist)})? ')' '::' typeSpecifier {self.nint.procedure_set_type($typeSpecifier.text); self.nint.procedure_mark_start()} block {self.nint.procedure_end()}
+    : 'function' ID {self.nint.procedure_start($ID.text)} '(' (plist=parameterList {self.nint.procedure_add_params($plist.ctx.plist)})? ')' {self.nint.array_decl_end()} '::' typeSpecifier {self.nint.procedure_set_type($typeSpecifier.text); self.nint.procedure_mark_start()} block {self.nint.procedure_end()}
     ;
 
 

@@ -401,16 +401,20 @@ class nintCompiler:
 		# TODO: probably change this
 		# TODO: these don't need to be *exactly* the same, they just need to be compatible
 		# example: float a = 10
-		assert right_type == left_type, "Type mismatch: assignment does not match"
+		# assert right_type == left_type, "Type mismatch: assignment does not match"
+		SemanticCube.check(operator, left_type, right_type)
 
 		if left_type is DType.VECTOR:
 			assert left_operand.scalar_type == right_operand.scalar_type, "Vector types do not match"
 			# Also check the length if we have it
 			if left_operand.dim1 is not None and right_operand.dim1 is not None:
 				assert left_operand.dim1 == right_operand.dim1, "Subset vectors must be of same size"
+		# else:
+
 
 		left_operand.has_value = True
 		self.quads.append((operator.value, right_operand.address, None, left_operand.address))
+		self._is_array = False
 
 		debug()
 
@@ -485,8 +489,14 @@ class nintCompiler:
 			raise Exception('Redefinition of parameter {} in function signature'.format(pname))
 
 		data_type = mapType(type_str)
+		is_vector = type_str.endswith('[]')
+		if is_vector:
+			scalar_type = data_type
+			data_type = DType.VECTOR
 		address = current_scope.memory.next_address(data_type)
 		var = Variable(pname, data_type, address)
+		if is_vector:
+			var.scalar_type = scalar_type
 		var.has_value = True
 		self._current_func.add_param(var)
 
@@ -625,6 +635,9 @@ class nintCompiler:
 	def array_declaration(self):
 		'''Helper method for generating array related quads'''
 		self._is_array = True
+
+	def array_decl_end(self):
+		self._is_array = False
 
 	def array_start(self):
 		'''Mark the beginning of an array definition. Add it to varstable and set appropriate types.
