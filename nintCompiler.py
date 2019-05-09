@@ -58,8 +58,9 @@ class nintCompiler:
 		self._param_k = None
 
 		# Array helpers
-		self._array_access = None
-		self._array_access_dim = 0
+		self._dim_access = None
+		self._dim_access_dim1 = 0
+		self._dim_access_dim2 = 0
 
 		# Generate the global scope and insert it into the functions directory
 		# gscope = Function(GLOBAL, None, VOID)
@@ -683,52 +684,75 @@ class nintCompiler:
 		self.quads[vec_pos][3] = array.dim1
 		self.quads.append((Operator.ENDVECTOR.value, None, None, array.address))
 
-	# Array access
-	def check_array(self, array_name: str):
-		'''Start an array subsetting or access. Checks that the name exists and it is an array'''
-		current_scope = self.ScopeStack.peek()
-		array = current_scope.get(array_name)
-		assert array is not None, "Array {} has not been declared."
-		assert array.dtype is DType.VECTOR, "Object {} is not a vector.".format(array_name)
-		self._array_access = array
 
+
+	def check_dim(self, dim_elem_name: str):
+		current_scope = self.ScopeStack.peek()
+		elem = current_scope.get(dim_elem_name)
+		assert elem is not None, "Name {} has not been declared.".format(dim_elem_name)
+		assert elem.dtype is DType.VECTOR or elem.dtype is DType.DF, "Object {} is not an array or data frame.".format(array_name)
+		self._dim_access = elem
+		self._dim_access_dim1 = 0
+		self._dim_access_dim2 = 0
+
+
+	# Array access
 	def array_access_start(self):
 		'''Generate a SUBSET quad to start subsetting the array.'''
-		array = self._array_access
-		self.quads.append((Operator.SUBSET.value, None, None, array.address))
+		dimelem = self._dim_access
+		self.quads.append((Operator.SUBSET.value, None, None, dimelem.address))
 
-	def array_access_expression(self):
+	def array_access_expression(self, dim_index: int):
 		'''Add the current expression as an element of the list subsetting the current array.
 		Check that the expression is of type INT. Generates a DIM quad'''
 		pos = self.OperandStack.pop()
 		pos_type = self.TypeStack.pop()
-		assert pos_type is DType.INT, "Vector subset expression must be an integer."
-		self._array_access_dim += 1
+		assert pos_type is DType.INT, "Subset expression must be an integer."
+		if dim_index == 1:
+			self._dim_access_dim1 += 1
+		else:
+			self._dim_access_dim2 += 1
 		# TODO: check that all expressions are different (we don't want [1,1])
-		self.quads.append((Operator.DIM.value, None, None, pos.address))
+		self.quads.append((Operator.DIM.value, None, dim_index, pos.address))
 
 	def array_access_end(self):
 		'''End the array subsetting. Check whether subsetting multiple or 1 item and set the
 		return type accordingly. Generate a pointer address to use when accesing the subsetted elements.
 		Store this pointer address in an ENDSUBSET quad.'''
-		array = self._array_access
-		result_is_scalar = self._array_access_dim == 1
+		dimelem = self._dim_access
+		assert self._dim_access_dim1 != 0, "You must provide at least one expression for subsetting"
+
+		if dimelem.dtype is DType.DF:
+			assert self._dim_access_dim2 != 0, "You must provide at least one expression for subsetting both dimensions."
+
+		if dimelem.dtype is DType.VECTOR:
+			assert self._dim_access_dim2 == 0, "Trying to 2D subset a 1D element."
+
 
 		result = self._TempStack.peek().next(DType.POINTER)
 
-		dtype = array.scalar_type if result_is_scalar else DType.VECTOR
+		dtype = self._mapSubsetResult(dimelem, self._dim_access_dim1, self._dim_access_dim2)
 		result.pointer_type = dtype
 
-		if not result_is_scalar:
-			result.scalar_type = array.scalar_type
-			result.dim1 = self._array_access_dim
+		if dtype is DType.VECTOR:
+			result.scalar_type = dimelem.scalar_type
+
+		result.dim1 = self._dim_access_dim1
+		result.dim2 = self._dim_access_dim2
 
 		self.OperandStack.push(result)
 		self.TypeStack.push(dtype)
 
 		self.quads.append((Operator.ENDSUBSET.value, None, None, result.address))
-		self._array_access_dim = 0
-		self._array_access = None
+		self._dim_access_dim1 = None
+		self._dim_access_dim2 = None
+		self._dim_access = None
+
+
+	def _mapSubsetResult(self, dimelem, dim1, dim2):
+		if dimelem.dtype is DType.DF and dim2 != 1:
+			return DType.DF
+		return dimelem.scalar_type if dim1 == 1 else DType.VECTOR
 
 
 	# Data frames

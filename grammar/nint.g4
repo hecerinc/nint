@@ -91,7 +91,13 @@ lhs
     ;
 
 arrayAccess
-    : ID '[' {self.nint.check_array($ID.text)} {self.nint.array_access_start()} {self.nint.paren_open()} ((expression {self.nint.array_access_expression()} (',' {self.nint.paren_open()} expression {self.nint.array_access_expression()} {self.nint.paren_close()})* ) | ':') {self.nint.paren_close()} ']' {self.nint.array_access_end()} // `:` = all the dimension // array access
+    : ID '[' {self.nint.check_dim($ID.text)} {self.nint.array_access_start()} {self.nint.paren_open()} ((
+            (expression {self.nint.array_access_expression(1)} | )
+            (',' {self.nint.paren_open()} expression {self.nint.array_access_expression(1)} {self.nint.paren_close()})* ) | ':')
+            {self.nint.paren_close()} // TODO we should open and close a paren per expression
+        ']'
+        ('[' {self.nint.paren_open()}  ({self.nint.paren_open()} expression {self.nint.paren_close()} {self.nint.array_access_expression(2)} | ) (',' {self.nint.paren_open()} expression {self.nint.paren_close()} {self.nint.array_access_expression(2)} {self.nint.paren_close()})* ']')?
+        {self.nint.array_access_end()} // `:` = all the dimension // array access
     ;
 
 exp
