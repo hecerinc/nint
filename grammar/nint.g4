@@ -53,7 +53,7 @@ stmt = None
 }
     : block
     | IF '(' expression ')' {self.nint.ifelse_start_jump()} block (ELSE {self.nint.ifelse_start_else()} statement)? {self.nint.ifelse_end_jump()}
-    | FOR '(' forInit? ';' expression? ';' expressionList? ')' block
+    | FOR '(' forInit? ';' {self.nint.while_condition_start()} expression? {self.nint.while_block_start()} ';' {self.nint.for_last_start()} assignment {self.nint.for_last_end()} ')' block {self.nint.for_end()}
     | WHILE {self.nint.while_condition_start()} '(' expression ')' {self.nint.while_block_start()} block {self.nint.while_end()}
     | RETURN expression? {self.nint.procedure_return($expression.ctx is not None)} ';'
     | expression ';'
@@ -70,15 +70,24 @@ result = None
     | functionCall
     | pipeStmt
     | arrayAccess
+    | assignment
     | '-' expression // negative numbers
-    | <assoc=right> '!' expression // negation TODO: assoc=right?
-    | <assoc=right> expression '=' {self.nint.add_operator('=')} initializer {self.nint.assignment_quad()} // assignment
+    | <assoc=right> '!' expression // negation
     | expression bop=('<=' | '>=' | '>' | '<') {self.nint.add_operator($bop.text)} expression {self.nint.check_relop()}
     | expression bop=('==' | '!=') {self.nint.add_operator($bop.text)} expression {self.nint.check_eqop()}
     | exp
     | <assoc=right> expression bop='**' expression // exponentiation
     | expression bop='&&' {self.nint.add_operator($bop.text)} expression {self.nint.check_and()}
     | expression bop='||' {self.nint.add_operator($bop.text)} expression {self.nint.check_or()}
+    ;
+
+assignment
+    : <assoc=right> lhs '=' {self.nint.add_operator('=')} initializer {self.nint.assignment_quad()} // assignment
+    ;
+
+lhs
+    : arrayAccess
+    | ID {self.nint.add_var($ID.text)}
     ;
 
 arrayAccess
@@ -117,7 +126,7 @@ literal
 
 forInit
     : declaration
-    | expressionList
+    | assignment
     ;
 
 

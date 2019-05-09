@@ -59,6 +59,24 @@ class nintListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by nintParser#assignment.
+    def enterAssignment(self, ctx:nintParser.AssignmentContext):
+        pass
+
+    # Exit a parse tree produced by nintParser#assignment.
+    def exitAssignment(self, ctx:nintParser.AssignmentContext):
+        pass
+
+
+    # Enter a parse tree produced by nintParser#lhs.
+    def enterLhs(self, ctx:nintParser.LhsContext):
+        pass
+
+    # Exit a parse tree produced by nintParser#lhs.
+    def exitLhs(self, ctx:nintParser.LhsContext):
+        pass
+
+
     # Enter a parse tree produced by nintParser#arrayAccess.
     def enterArrayAccess(self, ctx:nintParser.ArrayAccessContext):
         pass

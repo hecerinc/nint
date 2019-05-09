@@ -446,6 +446,27 @@ class nintCompiler:
 		counter = len(self.quads) # TODO: change this
 		self.fill(pending_while_end_jump, counter)
 
+	def for_last_start(self):
+		self.quads.append([Operator.GOTO.value, None, None, None])
+		counter = len(self.quads)
+		self.JumpStack.push(counter)
+		self.JumpStack.push(counter-1)
+	def for_last_end(self):
+		self.quads.append([Operator.GOTO.value, None, None, None])
+		pj = self.JumpStack.pop()
+		counter = len(self.quads)
+		self.fill(pj, counter)
+		self.JumpStack.push(counter-1)
+	def for_end(self):
+		pj1 = self.JumpStack.pop()
+		pj2 = self.JumpStack.pop()
+		self.quads.append([Operator.GOTO.value, None, None, pj2])
+		pj3 = self.JumpStack.pop()
+		counter = len(self.quads)
+		self.fill(pj3, counter)
+		pj4 = self.JumpStack.pop()
+		self.fill(pj1, pj4)
+
 
 	# Function definitions
 	# --------------------------------------------
