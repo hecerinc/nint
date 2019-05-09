@@ -60,6 +60,8 @@ class SemanticCube:
 
 			(Operator.ASSIGN, DType.INT, DType.INT): DType.INT,
 			(Operator.ASSIGN, DType.FLOAT, DType.FLOAT): DType.FLOAT,
+			(Operator.ASSIGN, DType.INT, DType.FLOAT): DType.INT,
+			(Operator.ASSIGN, DType.FLOAT, DType.INT): DType.FLOAT,
 			(Operator.ASSIGN, DType.BOOL, DType.BOOL): DType.BOOL,
 			(Operator.ASSIGN, DType.VECTOR, DType.VECTOR): DType.VECTOR,
 

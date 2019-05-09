@@ -23,6 +23,12 @@ _typemap = {
 	'void': DType.VOID
 }
 def mapType(type_str: str):
+	is_vector = False
 	if type_str.endswith('[]'):
+		is_vector = True
 		type_str = type_str[:-2]
-	return _typemap.get(type_str, DType.ERROR)
+	mapped_type = _typemap.get(type_str, DType.ERROR)
+	if is_vector:
+		return DType.VECTOR, mapped_type
+	else:
+		return mapped_type, None

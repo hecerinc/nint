@@ -58,7 +58,6 @@ class nintCompiler:
 		self._param_k = None
 
 		# Array helpers
-		self._is_array = False
 		self._array_access = None
 		self._array_access_dim = 0
 
@@ -148,19 +147,11 @@ class nintCompiler:
 		if current_scope.exists(identifier):
 			raise Exception('Double declaration. {} has already been declared in this context.'.format(identifier))
 
-		dtype = mapType(type_str)
-
-		if self._is_array:
-			scalar_type = dtype
-			dtype = DType.VECTOR
+		dtype, scalar_type = mapType(type_str)
 
 		address = current_scope.memory.next_address(dtype)
 
-		var = Variable(identifier, dtype, address)
-
-		if self._is_array:
-			var.scalar_type = scalar_type
-			self._is_array = False # Reset this value
+		var = Variable(identifier, dtype, address, None, scalar_type)
 
 		current_scope.insert(var)
 
@@ -416,7 +407,6 @@ class nintCompiler:
 
 		left_operand.has_value = True
 		self.quads.append((operator.value, right_operand.address, None, left_operand.address))
-		self._is_array = False
 
 		debug()
 
@@ -490,15 +480,9 @@ class nintCompiler:
 		if current_scope.exists(pname):
 			raise Exception('Redefinition of parameter {} in function signature'.format(pname))
 
-		data_type = mapType(type_str)
-		is_vector = type_str.endswith('[]')
-		if is_vector:
-			scalar_type = data_type
-			data_type = DType.VECTOR
+		data_type, scalar_type = mapType(type_str)
 		address = current_scope.memory.next_address(data_type)
-		var = Variable(pname, data_type, address)
-		if is_vector:
-			var.scalar_type = scalar_type
+		var = Variable(pname, data_type, address, None, scalar_type)
 		var.has_value = True
 		self._current_func.add_param(var)
 
@@ -510,7 +494,8 @@ class nintCompiler:
 
 	def procedure_set_type(self, type_str: str):
 		'''Set the return type of this function'''
-		self._current_func.update_type(mapType(type_str))
+		dtype, _ = mapType(type_str)
+		self._current_func.update_type(dtype)
 
 	def procedure_update_size(self):
 		'''Once we know the number of temps, and local variables defined, we can update the size'''
@@ -636,10 +621,10 @@ class nintCompiler:
 	# --------------------------------------------
 	def array_declaration(self):
 		'''Helper method for generating array related quads'''
-		self._is_array = True
+		pass
 
 	def array_decl_end(self):
-		self._is_array = False
+		pass
 
 	def array_start(self):
 		'''Mark the beginning of an array definition. Add it to varstable and set appropriate types.

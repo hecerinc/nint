@@ -9,4 +9,5 @@ function find(int[] a, int value) :: int {
 	return -1;
 }
 int[] a = [1,2,3];
+print(find(a, 2));
 print(find(a, 9));

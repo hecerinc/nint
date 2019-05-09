@@ -9,12 +9,12 @@ name_mode = os.getenv('NINT_ADDRESS', 'true')
 
 class Variable(Symbol):
 	"""docstring for Variable"""
-	def __init__(self, name: str, dtype, address, value = None):
+	def __init__(self, name: str, dtype, address, value = None, st = None):
 		super().__init__(name, dtype)
 		# This address will be a function of the type and which memory
 		self._address = address
 		self._value = value
-		self._scalar_type = None
+		self._scalar_type = st
 		self._dim1 = None
 		self._pointer_type = None
 		self._has_value = False
