@@ -402,8 +402,8 @@ class nintCompiler:
 			# Also check the length if we have it
 			if left_operand.dim1 is not None and right_operand.dim1 is not None:
 				assert left_operand.dim1 == right_operand.dim1, "Subset vectors must be of same size"
-		# else:
-
+			if right_operand.dim1 is not None:
+				left_operand.dim1 = right_operand.dim1
 
 		left_operand.has_value = True
 		self.quads.append((operator.value, right_operand.address, None, left_operand.address))
@@ -731,6 +731,35 @@ class nintCompiler:
 		self._array_access = None
 
 
+	# Data frames
+	# --------------------------------------------
+	def dataframe_start(self):
+		self.JumpStack.push(len(self.quads))
+		self.quads.append([Operator.DF.value, None, None, None])
+		df = self._TempStack.peek().next(DType.DF)
+		# dim1 = rows
+		# dim2 = cols
+		df.dim2 = 0
+		self.OperandStack.push(df)
+		self.TypeStack.push(DType.DF)
+
+	def dataframe_elem(self):
+		elem = self.OperandStack.pop()
+		elem_type = self.TypeStack.pop()
+		assert elem_type is DType.VECTOR, "Members of a data frame must be vectors"
+		df = self.OperandStack.peek()
+		if df.dim2 == 0: # no cols have been added
+			df.dim1 = elem.dim1 # set # rows of this df to the first col's # of elements
+		else:
+			assert elem.dim1 == df.dim1, "Data frame init: Arguments imply different number of rows: {}, {}".format(df.dim1, elem.dim1)
+		df.dim2 += 1 # add 1 to col count
+		self.quads.append((Operator.PUSH.value, None, None, elem.address))
+
+	def dataframe_end(self):
+		pjump = self.JumpStack.pop()
+		df = self.OperandStack.peek()
+		self.fill(pjump, df.dim2)
+		self.quads.append([Operator.ENDF.value, None, None, df.address])
 
 
 	# Special functions

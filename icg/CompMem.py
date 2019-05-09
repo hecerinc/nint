@@ -20,6 +20,7 @@ class CompMem:
 		DType.FLOAT: 4,
 		DType.VECTOR: 5,
 		DType.POINTER: 6,
+		DType.DF: 7,
 	}
 
 	CONST_TABLE = {
@@ -43,6 +44,7 @@ class CompMem:
 			DType.FLOAT: 0,
 			DType.VECTOR: 0,
 			DType.POINTER: 0,
+			DType.DF: 0,
 		}
 
 	def next_address(self, dtype: DType) -> str:

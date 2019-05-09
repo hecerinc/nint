@@ -43,6 +43,9 @@ class Operator(Enum):
 	SUBSET = 'SUBSET'
 	ENDSUBSET = 'ENDSUBSET'
 
+	DF = 'DATAFRAME'
+	ENDF = 'ENDF'
+
 	PRINT = 'print'
 
 

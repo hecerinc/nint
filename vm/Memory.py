@@ -53,6 +53,7 @@ class Memory:
 			DType.FLOAT: [None]*var_count[DType.FLOAT],
 			DType.VECTOR: [None]*var_count[DType.VECTOR],
 			DType.POINTER: [None]*var_count[DType.POINTER],
+			DType.DF: [None]*var_count[DType.DF],
 		}
 
 	def _parse_address(self, address):

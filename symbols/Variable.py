@@ -16,6 +16,7 @@ class Variable(Symbol):
 		self._value = value
 		self._scalar_type = st
 		self._dim1 = None
+		self._dim2 = None
 		self._pointer_type = None
 		self._has_value = False
 
@@ -42,6 +43,14 @@ class Variable(Symbol):
 	@dim1.setter
 	def dim1(self, size):
 		self._dim1 = size
+
+	@property
+	def dim2(self):
+		return self._dim2
+
+	@dim2.setter
+	def dim2(self, size):
+		self._dim2 = size
 
 	@scalar_type.setter
 	def scalar_type(self, st: DType):

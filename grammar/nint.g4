@@ -93,6 +93,7 @@ lhs
 arrayAccess
     : ID '[' {self.nint.check_array($ID.text)} {self.nint.array_access_start()} {self.nint.paren_open()} ((expression {self.nint.array_access_expression()} (',' {self.nint.paren_open()} expression {self.nint.array_access_expression()} {self.nint.paren_close()})* ) | ':') {self.nint.paren_close()} ']' {self.nint.array_access_end()} // `:` = all the dimension // array access
     ;
+
 exp
     : term {self.nint.check_addsub()} (bop=('+'|'-') {self.nint.add_operator($bop.text)} term {self.nint.check_addsub()})*
     ;
@@ -105,11 +106,6 @@ factor
     | arrayAccess
     | functionCall
     ;
-
-expressionList
-    : expression (',' expression)*
-    ;
-
 
 literal
     : (neg='-')? INT_LITERAL {self.nint.add_constant($INT_LITERAL.text, DType.INT, $neg is not None)}
@@ -137,6 +133,7 @@ declaration
     ;
 initializer
     : vectorInitializer
+    | DF '(' {self.nint.dataframe_start()} expression {self.nint.dataframe_elem()} (',' expression {self.nint.dataframe_elem()})* ')' {self.nint.dataframe_end()}
     | expression
     ;
 vectorInitializer

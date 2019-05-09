@@ -58,12 +58,19 @@ class SemanticCube:
 			(Operator.GTE, DType.INT, DType.INT): DType.BOOL,
 			(Operator.GTE, DType.INT, DType.FLOAT): DType.BOOL,
 
+
+
+			# Assignments
+			# ---------------------------------------------------------------
+
 			(Operator.ASSIGN, DType.INT, DType.INT): DType.INT,
 			(Operator.ASSIGN, DType.FLOAT, DType.FLOAT): DType.FLOAT,
+			(Operator.ASSIGN, DType.STRING, DType.STRING): DType.STRING,
 			(Operator.ASSIGN, DType.INT, DType.FLOAT): DType.INT,
 			(Operator.ASSIGN, DType.FLOAT, DType.INT): DType.FLOAT,
 			(Operator.ASSIGN, DType.BOOL, DType.BOOL): DType.BOOL,
 			(Operator.ASSIGN, DType.VECTOR, DType.VECTOR): DType.VECTOR,
+			(Operator.ASSIGN, DType.DF, DType.DF): DType.DF,
 
 
 

@@ -10,6 +10,7 @@ class DType(Enum):
 	STRING = auto()
 	FLOAT = auto()
 	VECTOR = auto()
+	DF = auto()
 	POINTER = auto()
 	ERROR = auto()
 	VOID = auto()
@@ -20,7 +21,8 @@ _typemap = {
 	'bool': DType.BOOL,
 	'string': DType.STRING,
 	'float': DType.FLOAT,
-	'void': DType.VOID
+	'data.frame': DType.DF,
+	'void': DType.VOID,
 }
 def mapType(type_str: str):
 	is_vector = False

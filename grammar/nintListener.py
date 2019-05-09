@@ -113,15 +113,6 @@ class nintListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by nintParser#expressionList.
-    def enterExpressionList(self, ctx:nintParser.ExpressionListContext):
-        pass
-
-    # Exit a parse tree produced by nintParser#expressionList.
-    def exitExpressionList(self, ctx:nintParser.ExpressionListContext):
-        pass
-
-
     # Enter a parse tree produced by nintParser#literal.
     def enterLiteral(self, ctx:nintParser.LiteralContext):
         pass
