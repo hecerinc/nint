@@ -446,6 +446,9 @@ class nintCompiler:
 		counter = len(self.quads) # TODO: change this
 		self.fill(pending_while_end_jump, counter)
 
+
+	# For loop
+	# --------------------------------------------
 	def for_last_start(self):
 		self.quads.append([Operator.GOTO.value, None, None, None])
 		counter = len(self.quads)
