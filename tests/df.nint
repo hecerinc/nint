@@ -4,3 +4,7 @@ data.frame df = data.frame(a, b);
 
 
 print(df);
+
+a[0] = 10;
+print(a);
+print(df[0,1][0]);

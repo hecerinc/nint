@@ -3,6 +3,7 @@
 import sys
 import os
 import pickle
+import copy
 
 from utils.Stack import Stack
 from symbols.Operators import Operator
@@ -34,6 +35,7 @@ class nintVM:
 		self._current_array_address = None
 		self._current_array_length = None
 		self._subset = []
+		self._subset_dim2 = []
 
 
 		self.load_data(filename)
@@ -166,7 +168,6 @@ class nintVM:
 		'''The actual function that checks which instance of memory to
 		retrieve the value from'''
 		if is_constant(address):
-			debug(address, "is_constant")
 			return self.ConstTable[address]
 		elif is_temp(address):
 			return self.Temp.get_val(address)
@@ -180,6 +181,9 @@ class nintVM:
 		array_addr = pointer[0]
 		subset = pointer[1]
 		array = self._get_value(array_addr)
+		if len(pointer) == 3: # Data frame pointer
+			subset_dim2 = pointer[2]
+			return array.subset(subset, subset_dim2)
 		result = []
 		for index in subset:
 			result.append(array[index])
@@ -426,7 +430,7 @@ class nintVM:
 		'''Push an element to the current vector'''
 		if self._current_array is None:
 			# TODO: refactor this to use a single var/counter
-			self._df[self._dflen] = quad[3]
+			self._df[self._dflen] = copy.deepcopy(self.get_value(quad[3]))
 			self._dflen += 1
 		else:
 			value = self.get_value(quad[3])
@@ -443,6 +447,10 @@ class nintVM:
 	def subset(self, quad):
 		'''Start an array subsetting. Get the array from memory.'''
 		self._current_array = self.get_value(quad[3])
+		self._subset = []
+		self._subset_dim2 = []
+		# print(type(self._current_array))
+		# raise Exception("End here")
 		self._current_array_address = quad[3]
 
 	def dim(self, quad):
@@ -451,24 +459,37 @@ class nintVM:
 		# TODO: actually read the dimension to support data frames
 		array = self._current_array
 		subset_value = self.get_value(quad[3])
-		# dim = quad[2]
+		dim = int(quad[2])
 		# Validate it's within bounds
-		assert subset_value >= 0 and subset_value < len(array), "Out of bounds exception: index is out of bounds."
-		# 	self._subset_result = []
-		if self._subset is None: # TODO: what is this?
-			self._subset = []
-		self._subset.append(subset_value)
-		# self._subset_result.append(array[subset_value])
+		assert subset_value >= 0, "Out of bounds exception: index is out of bounds."
+		if isinstance(array, list):
+			assert dim == 1
+			assert subset_value < len(array), "Out of bounds exception: index {} is out of bounds.".format(subset_value)
+			self._subset.append(subset_value)
+		else:
+			if dim == 1: # subsetting a row
+				assert subset_value < len(array.columns[0]), "Out of bounds exception: index {} is out of bounds.".format(subset_value)
+				self._subset.append(subset_value)
+			else: # subsetting a col
+				assert subset_value < len(array.columns), "Out of bounds exception: index {} is out of bounds.".format(subset_value)
+				self._subset_dim2.append(subset_value)
+
+		# Update the global subset list with this index. This builds up
+		# the full subsetting list for when we store the pointer
 
 	def endsubset(self, quad):
 		'''End the subset and store the subset result as a pointer in the designated memory'''
-		result = (self._current_array_address, self._subset)
+		if len(self._subset_dim2) != 0:
+			result = (self._current_array_address, self._subset, self._subset_dim2)
+		else:
+			result = (self._current_array_address, self._subset)
 		# if len(result) == 1:
 		# 	result = result[0]
 		self.set_value(quad[3], result, False)
 		self._current_array_address = None
 		self._current_array = None
 		self._subset = None
+		self._subset_dim2 = None
 
 
 	# Data frames
@@ -484,7 +505,6 @@ class nintVM:
 		self.set_value(quad[3], df)
 		self._df = None
 		self._dflen = None
-
 
 
 	# Special functions
