@@ -3,4 +3,4 @@ string[] b = ['hello', 'hello', 'hello'];
 data.frame df = data.frame(a, b);
 
 
-print(df[0][9]);
+print(df);

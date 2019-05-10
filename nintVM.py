@@ -9,6 +9,7 @@ from symbols.Operators import Operator
 from vm.Memory import Memory, is_constant, is_temp, is_local, is_global, is_pointer
 from vm.StackFrame import StackFrame
 from nintCompiler import debug
+from vm.DataFrame import DataFrame
 
 
 debug_mode = os.getenv('NINT_ENV', 'debug')
@@ -31,6 +32,7 @@ class nintVM:
 		self._newstack = None
 		self._current_array = None
 		self._current_array_address = None
+		self._current_array_length = None
 		self._subset = []
 
 
@@ -102,6 +104,9 @@ class nintVM:
 			Operator.DIM: self.dim,
 			Operator.SUBSET: self.subset,
 			Operator.ENDSUBSET: self.endsubset,
+
+			Operator.DF: self.dataframe,
+			Operator.ENDF: self.end_dataframe,
 
 			Operator.PRINT: self._print
 		}
@@ -419,15 +424,21 @@ class nintVM:
 
 	def push_elem(self, quad):
 		'''Push an element to the current vector'''
-		value = self.get_value(quad[3])
-		self._current_array[self._current_array_length] = value
-		self._current_array_length += 1
+		if self._current_array is None:
+			# TODO: refactor this to use a single var/counter
+			self._df[self._dflen] = quad[3]
+			self._dflen += 1
+		else:
+			value = self.get_value(quad[3])
+			self._current_array[self._current_array_length] = value
+			self._current_array_length += 1
 
 	def endvector(self, quad):
 		'''Copy the currently building vector into its corresponding memory address'''
 		array = self._current_array
 		self.set_value(quad[3], array)
 		self._current_array = None
+		self._current_array_length = None
 
 	def subset(self, quad):
 		'''Start an array subsetting. Get the array from memory.'''
@@ -440,6 +451,7 @@ class nintVM:
 		# TODO: actually read the dimension to support data frames
 		array = self._current_array
 		subset_value = self.get_value(quad[3])
+		# dim = quad[2]
 		# Validate it's within bounds
 		assert subset_value >= 0 and subset_value < len(array), "Out of bounds exception: index is out of bounds."
 		# 	self._subset_result = []
@@ -457,6 +469,23 @@ class nintVM:
 		self._current_array_address = None
 		self._current_array = None
 		self._subset = None
+
+
+	# Data frames
+	# ---------------------------------------------------------------
+	def dataframe(self, quad):
+		size = int(quad[3])
+		self._df = [None]*size
+		self._dflen = 0
+
+	def end_dataframe(self, quad):
+		df = self._df
+		df = DataFrame(df, self)
+		self.set_value(quad[3], df)
+		self._df = None
+		self._dflen = None
+
+
 
 	# Special functions
 	# ---------------------------------------------------------------

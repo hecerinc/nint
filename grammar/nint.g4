@@ -91,6 +91,7 @@ lhs
     ;
 
 arrayAccess
+// TODO: add error handling for df[0][0,]
     : ID '[' {self.nint.check_dim($ID.text)} {self.nint.array_access_start()} {self.nint.paren_open()} ((
             (expression {self.nint.array_access_expression(1)} | )
             (',' {self.nint.paren_open()} expression {self.nint.array_access_expression(1)} {self.nint.paren_close()})* ) | ':')
