@@ -17,5 +17,5 @@ function fib(int n) :: int {
 }
 
 
-print(fib(8));
+print(fib(20));
 print(fib(10));

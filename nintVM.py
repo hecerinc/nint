@@ -4,6 +4,10 @@ import sys
 import os
 import pickle
 import copy
+import numpy as np
+
+sys.tracebacklimit = None
+
 
 from utils.Stack import Stack
 from symbols.Operators import Operator
@@ -62,6 +66,9 @@ class nintVM:
 			'ls': self._ls,
 			'sum': self._sum,
 			'table': self._table,
+			'dim': self._dimensions,
+			'summary': self._summary,
+			'linreg': self._linreg,
 		}
 
 		# Instruction set
@@ -548,8 +555,30 @@ class nintVM:
 			print(str(item) + "\t" + str(count))
 		self.endproc(None)
 
+	def _dimensions(self):
+		current_scope = self.CallStack.peek()
+		param = current_scope.param_list[0]
+		df = self.get_value(param)
+		self.FunDir['dim']['value'] = list(df.df.shape)
+		self._returns_value = True
+		self.endproc(None)
 
+	def _summary(self):
+		current_scope = self.CallStack.peek()
+		param = current_scope.param_list[0]
+		df = self.get_value(param)
+		print(df.df.describe())
+		self.endproc(None)
 
+	def _linreg(self):
+		current_scope = self.CallStack.peek()
+		param1 = current_scope.param_list[0]
+		param2 = current_scope.param_list[1]
+		col1 = self.get_value(param1)
+		col2 = self.get_value(param2)
+		self.FunDir['linreg']['value'] = np.polyfit(col1, col2, 1).tolist()
+		self._returns_value = True
+		self.endproc(None)
 
 
 

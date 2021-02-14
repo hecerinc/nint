@@ -5,7 +5,7 @@ import sys
 import pickle
 
 # Hide traceback from exceptions:
-# sys.tracebacklimit = None
+sys.tracebacklimit = None
 
 from utils.Stack import Stack, OperandStack as OStack
 from icg.Temp import Temp
@@ -104,6 +104,9 @@ class nintCompiler:
 			Function.make('ls', DType.VOID, []),
 			Function.make('sum', DType.INT, [DType.VECTOR]),
 			Function.make('table', DType.VOID, [DType.VECTOR]),
+			Function.make('dim', DType.VECTOR, [DType.DF]),
+			Function.make('summary', DType.VOID, [DType.DF]),
+			Function.make('linreg', DType.VECTOR, [DType.VECTOR, DType.VECTOR]),
 		]
 		for func in funcs:
 			scope.insert(func)
