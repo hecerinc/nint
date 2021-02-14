@@ -1,5 +1,4 @@
 .antlr/
-todo.md
 temp/
 *.bytecode
 
